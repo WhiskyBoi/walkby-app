@@ -1,0 +1,532 @@
+:root {
+    --brand-orange: #f5a700;
+    --brand-orange-dark: #d15400;
+    --header-bg: #fdf6e3;
+    --text-sepia: #654321;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+.page.active {
+    display: flex;
+}
+
+.page {
+    display: none;
+}
+
+.header-fixed {
+    background-color: var(--header-bg);
+    border-bottom: 1px solid #eee8d5;
+}
+
+.font-playfair {
+    font-family: 'Playfair Display', serif;
+}
+
+/* Navigation */
+.floating-nav-container {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+}
+
+.floating-nav-item {
+    background-color: #F0F0F0;
+    color: #606060;
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.floating-nav-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.floating-nav-item.active {
+    background-color: var(--brand-orange);
+    color: white;
+    box-shadow: 0 6px 16px rgba(245, 167, 0, 0.4);
+    transform: translateY(-12px);
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Film Reel Design */
+.film-reel-container {
+    perspective: 1500px;
+}
+
+.film-reel-media-strip {
+    height: 200px;
+    padding: 12px 0;
+    background-color: #000;
+    transform: rotateX(2deg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.perforation-hole {
+    width: 10px;
+    height: 6px;
+    background-color: white;
+    margin: 0 5px;
+}
+
+.film-strip-content-wrapper {
+    background-color: white;
+    height: 100%;
+    display: flex;
+    overflow-x: auto;
+}
+
+.film-slot {
+    flex-shrink: 0;
+    width: 140px;
+    height: 100%;
+    border-right: 2px solid #000;
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+}
+
+.film-slot:last-child {
+    border-right: none;
+}
+
+.film-frame-item {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    background-color: white;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: grab;
+    border-radius: 8px;
+}
+
+.film-frame-item.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+#add-media-frame {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+}
+
+.delete-media-btn {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.film-frame-item:hover .delete-media-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Projekt Karte */
+.project-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    /* Sorgt für das vertikale Layout */
+    overflow: hidden;
+    /* Verhindert, dass abgerundete Ecken überdeckt werden */
+}
+
+.project-card .content-area {
+    flex-grow: 1;
+    cursor: pointer;
+}
+
+.project-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.project-card .thumbnail {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #e0e0e0;
+}
+
+.project-card .thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.media-page-action-btn {
+    color: white;
+    padding: 16px 32px;
+    border-radius: 28px;
+    font-weight: 700;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.media-page-action-btn:disabled {
+    background-color: #B0B0B0;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.media-page-action-btn:not(:disabled) {
+    background: linear-gradient(145deg, var(--brand-orange-dark), var(--brand-orange));
+    box-shadow: 0 8px 20px rgba(209, 84, 0, 0.4);
+    cursor: pointer;
+}
+
+.media-page-action-btn:not(:disabled):hover {
+    transform: scale(1.05);
+}
+
+.modal {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.modal-tab-btn.active {
+    color: var(--brand-orange);
+    border-color: var(--brand-orange);
+}
+
+/* --- Stile für Modus-Auswahl --- */
+.mode-selector-btn .inner-dot {
+    background-color: transparent;
+    transition: background-color 0.2s;
+}
+
+.mode-selector-btn.active {
+    border-color: var(--brand-orange) !important;
+    background-color: #FFF8E1;
+    /* Leichter Orangeton */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.mode-selector-btn.active .radio-dot {
+    border-color: var(--brand-orange);
+}
+
+.mode-selector-btn.active .inner-dot {
+    background-color: var(--brand-orange);
+}
+
+/* --- ENDE: Stile für Modus-Auswahl --- */
+
+/* Map */
+#map {
+    height: 100%;
+    width: 100%;
+    border-radius: 12px;
+    z-index: 1;
+}
+
+.leaflet-popup-content {
+    width: 200px !important;
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+/* User Location Icon */
+.user-location-icon {
+    background-color: #1e90ff;
+    /* kräftiges Blau */
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    border: 2px solid white;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.user-location-icon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: rgba(30, 144, 255, 0.5);
+    transform: translate(-50%, -50%);
+    animation: pulse 1.5s infinite ease-out;
+    z-index: -1;
+}
+
+.walkby-marker-icon {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.walkby-marker-icon.marker-single {
+    background-color: var(--brand-orange);
+}
+
+.walkby-marker-icon.marker-collab {
+    background-color: #1E90FF;
+    /* Ein kräftiges Blau */
+}
+
+/* Stil für die Karten-Legende */
+.map-legend {
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(4px);
+    border-radius: 8px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+    line-height: 1.5;
+}
+
+.map-legend i {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    float: left;
+    margin-right: 8px;
+    border: 2px solid white;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(3);
+        opacity: 0;
+    }
+}
+
+/* --- Cinematic Playback Styles --- */
+#playback-modal {
+    background-color: #000;
+    /* Dunklerer Hintergrund für Kino-Feeling */
+    perspective: 1000px;
+}
+
+#playback-media-container {
+    transition: all 0.5s ease-in-out, box-shadow 1.5s linear;
+    box-shadow: 0 0 300px 100px rgba(255, 255, 255, 0.15);
+    /* Leuchtender Bildschirm-Effekt */
+    transform: scale(0.95);
+    opacity: 0;
+}
+
+#playback-modal.is-playing #playback-media-container {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Filmrolle Intro */
+#film-intro-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+    z-index: 40;
+    transition: opacity 0.5s ease-in-out 2.5s;
+    display: none;
+    pointer-events: none;
+}
+
+#film-intro-overlay.is-playing {
+    display: block;
+    opacity: 0;
+}
+
+.film-leader {
+    width: 100%;
+    height: 300%;
+    /* Definiert das Aussehen des Filmstreifens mit Countdown-Zahlen */
+    background-image:
+        url("data:image/svg+xml,..."),
+        /* SVG für Zahl 3 */
+        url("data:image/svg+xml,..."),
+        /* SVG für Zahl 2 */
+        url("data:image/svg+xml,..."),
+        /* SVG für Zahl 1 */
+        radial-gradient(circle at 10px 10px, white 4px, transparent 4px),
+        radial-gradient(circle at 190px 10px, white 4px, transparent 4px);
+    background-repeat: repeat-x, repeat-x, repeat-x, repeat-y, repeat-y;
+    background-size: 0% 0%, 0% 0%, 0% 0%, 200px 20px, 200px 20px;
+    background-position: center, center, center, 0 0, 100% 0;
+    /* Weist die Animationen zu */
+    animation: pull-film 2.5s linear forwards, countdown 2.5s step-end forwards;
+    position: absolute;
+    top: -100%;
+    left: 0;
+}
+
+/* Animation, die den Filmstreifen nach unten zieht */
+@keyframes pull-film {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(100%);
+    }
+}
+
+/* Animation, die die Countdown-Zahlen wechselt */
+@keyframes countdown {
+    0% {
+        background-size: 100% 33.3%, 0% 0%, 0% 0%, 200px 20px, 200px 20px;
+    }
+
+    33% {
+        background-size: 0% 0%, 100% 33.3%, 0% 0%, 200px 20px, 200px 20px;
+    }
+
+    66% {
+        background-size: 0% 0%, 0% 0%, 100% 33.3%, 200px 20px, 200px 20px;
+    }
+
+    99%,
+    100% {
+        background-size: 0% 0%, 0% 0%, 0% 0%, 200px 20px, 200px 20px;
+    }
+}
+
+/* Eigene Stile für die Karten-Pop-ups */
+.custom-walkby-popup .leaflet-popup-content-wrapper {
+    padding: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.custom-walkby-popup .leaflet-popup-content {
+    margin: 0 !important;
+    width: auto !important;
+}
+
+.custom-walkby-popup .leaflet-popup-close-button {
+    color: #fff !important;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+    margin: 4px;
+    transition: background-color 0.2s;
+}
+
+.custom-walkby-popup .leaflet-popup-close-button:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.media-previews-container .overflow-x-auto::-webkit-scrollbar {
+    display: none;
+    /* Für Chrome, Safari und Opera */
+}
+
+.author-tag {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.popup-info-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    /* Abstand zwischen Icon und Text */
+}
+
+.popup-title-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    /* Abstand zwischen Titel und Button */
+}
+
+.toggle-description-btn {
+    background: none;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    color: #6b7280; /* Ein neutrales Grau */
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+/* Leichter Hover-Effekt */
+.toggle-description-btn:hover {
+    background-color: #f3f4f6;  
+}
+
+.description-content {
+    padding-top: 8px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: #4b5563;
+    border-top: 1px solid #f3f4f6;
+    margin-top: 8px;
+}

@@ -1,0 +1,1213 @@
+const supabaseClient = supabase.createClient(
+    'https://bllmfzpmntqhopgwvyhm.supabase.co', // <-- HIER DEINE ECHTE URL EINFÜGEN
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsbG1menBtbnRxaG9wZ3d2eWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNTk5NTcsImV4cCI6MjA3MDgzNTk1N30.cwaUVks55hMCNXw7kkHZ-eaiEElWG4bgVh-I75GFSpo'     // <-- HIER DEINEN ECHTEN ANON KEY EINFÜGEN
+);
+
+const toggleModal = (modal, show) => {
+    if (show) {
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('opacity-0'), 10);
+    } else {
+        modal.classList.add('opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+};
+
+const showToast = (message) => {
+    const toast = document.getElementById('toast-notification');
+    toast.textContent = message;
+    toast.classList.replace('bottom-[-100px]', 'bottom-10');
+    setTimeout(() => {
+        toast.classList.replace('bottom-10', 'bottom-[-100px]');
+    }, 2500);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const dom = {
+        pages: document.querySelectorAll('.page'),
+        navButtons: document.querySelectorAll('.floating-nav-item'),
+        mediaPage: {
+            title: document.getElementById('media-page-title'),
+            filmStrip: document.getElementById('film-strip-content'),
+            addMediaFrame: document.getElementById('add-media-frame'),
+            mediaUploadInput: document.getElementById('mediaUploadInput'),
+            actionBtn: document.getElementById('media-page-action-btn'),
+            perfTop: document.querySelector('.film-strip-top-perforations'),
+            perfBottom: document.querySelector('.film-strip-bottom-perforations'),
+        },
+        projectsPage: {
+            container: document.getElementById('projects-list-container'),
+            addNewBtn: document.getElementById('add-new-project-btn'),
+        },
+        mapPage: {
+            mapElement: document.getElementById('map'),
+        },
+        projectModal: {
+            modal: document.getElementById('create-project-modal'),
+            title: document.getElementById('modal-title'),
+            id: document.getElementById('project-id'),
+            projectTitle: document.getElementById('project-title'),
+            description: document.getElementById('project-description'),
+            // ==== JS MODIFICATION ====
+            modeContainer: document.getElementById('project-mode-container'),
+            modeValue: document.getElementById('project-mode-value'),
+            // ==== END JS MODIFICATION ====
+            locationInput: document.getElementById('project-location-input'),
+            mapElement: document.getElementById('modal-map'),
+            tabDetails: document.getElementById('modal-tab-details'),
+            tabLocation: document.getElementById('modal-tab-location'),
+            contentDetails: document.getElementById('modal-content-details'),
+            contentLocation: document.getElementById('modal-content-location'),
+            searchLocationBtn: document.getElementById('location-search-btn'),
+            useMyLocationBtn: document.getElementById('use-my-location-btn'),
+            cancelBtn: document.getElementById('cancel-create-project'),
+            confirmBtn: document.getElementById('confirm-create-project'),
+        },
+        playbackModal: {
+            modal: document.getElementById('playback-modal'),
+            mediaContainer: document.getElementById('playback-media-container'),
+            playPauseBtn: document.getElementById('playback-play-pause-btn'),
+            prevBtn: document.getElementById('playback-prev-btn'),
+            nextBtn: document.getElementById('playback-next-btn'),
+            closeBtn: document.getElementById('playback-close-btn'),
+            progressDots: document.getElementById('playback-progress-dots'),
+            filmIntro: document.getElementById('film-intro-overlay'),
+        },
+
+        profileModal: {
+            modal: document.getElementById('profile-modal'),
+            usernameInput: document.getElementById('username-input'),
+            saveBtn: document.getElementById('save-profile-changes'),
+            cancelBtn: document.getElementById('cancel-profile-changes'),
+            openBtn: document.getElementById('profile-settings-btn')
+        }
+
+    };
+
+    const state = {
+        activePage: 'media-page',
+        currentUser: 'Gast',
+        allProjects: [],
+        currentMediaClips: [],
+        isEditMode: false,
+        currentlyEditingProjectId: null,
+        draggedClipId: null,
+        playback: {
+            items: [],
+            currentIndex: 0,
+            isPlaying: false,
+            timeout: null,
+            ambilightInterval: null
+        },
+        maps: {
+            //main: null,
+            modal: null,
+            modalMarker: null,
+            projectMarkers: [],
+            currentPinLocation: null,
+            userLocationRequested: false
+        },
+        MAX_FRAMES: 5
+    };
+
+    const userLocationIcon = L.divIcon({
+        className: 'user-location-icon',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+    });
+
+    const requestUserLocation = (onSuccess) => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            onSuccess,
+            (error) => {
+                let message = "Standort konnte nicht ermittelt werden.";
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        message = "Zugriff auf Standort blockiert."; break;
+                    case error.POSITION_UNAVAILABLE:
+                        message = "Standortinformation ist nicht verfügbar."; break;
+                    case error.TIMEOUT:
+                        message = "Standortabfrage hat zu lange gedauert."; break;
+                }
+                console.error("Fehler bei der Standortabfrage:", error.code, error.message);
+                showToast(message);
+            }
+        );
+    } else {
+        showToast("Standortabfrage wird von diesem Browser nicht unterstützt.");
+    }
+};
+
+    // Switch Pages
+    const switchPage = (targetId) => {
+        state.activePage = targetId;
+        dom.pages.forEach(page => page.classList.toggle('active', page.id === targetId));
+        dom.navButtons.forEach(btn => btn.classList.toggle('active', `nav-${targetId.split('-')[0]}` === btn.id));
+
+        // Prüfen, ob zur Kartenseite gewechselt wird
+        if (targetId === 'map-page') {
+            // 1. Initialisiere die Karte
+            if (!state.maps.main) {
+                state.maps.main = initMap(dom.mapPage.mapElement, { center: [53.551, 9.993], zoom: 13 });
+                renderProjectMarkers(); // Marker jetzt hier rendern, da die Karte existiert.
+            }
+
+            // 2. WICHTIG: Gib der Karte einen Moment Zeit, um im DOM sichtbar zu werden,
+            //    und erzwinge dann eine Neu-Berechnung der Größe.
+            setTimeout(() => {
+                state.maps.main.invalidateSize();
+
+                // 3. Frage den Standort des Nutzers erst NACH der Größenanpassung ab
+                //    und nur, wenn es noch nicht geschehen ist.
+                if (!state.maps.userLocationRequested) {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                const userLatLng = {
+                                    lat: position.coords.latitude,
+                                    lng: position.coords.longitude
+                                };
+                                state.maps.userLocation = userLatLng;
+
+                                // Eigenes Icon für den Nutzerstandort erstellen und hinzufügen
+                                const userLocationIcon = L.divIcon({
+                                    className: 'user-location-icon',
+                                    iconSize: [16, 16],
+                                    iconAnchor: [8, 8],
+                                });
+
+                                L.marker(userLatLng, { icon: userLocationIcon })
+                                    .addTo(state.maps.main)
+                                    .bindPopup('Dein Standort');
+
+                                // Karte auf den Nutzer zentrieren
+                                state.maps.main.panTo(userLatLng);
+                                renderProjectMarkers();
+                            },
+                            (error) => {
+                                let message = "Standort konnte nicht ermittelt werden.";
+                                switch (error.code) {
+                                    case error.PERMISSION_DENIED:
+                                        message = "Zugriff auf Standort blockiert.";
+                                        break;
+                                    case error.POSITION_UNAVAILABLE:
+                                        message = "Standortinformation ist nicht verfügbar.";
+                                        break;
+                                    case error.TIMEOUT:
+                                        message = "Standortabfrage hat zu lange gedauert.";
+                                        break;
+                                }
+                                console.error("Fehler bei der Standortabfrage:", error.code, error.message);
+                                showToast(message);
+                            }
+                        );
+                    } else {
+                        showToast("Standortabfrage wird von diesem Browser nicht unterstützt.");
+                    }
+                    // Setze die Flag, damit nicht erneut gefragt wird.
+                    state.maps.userLocationRequested = true;
+                }
+            }, 10); // Ein kleiner Timeout von 10ms genügt.
+        }
+    };
+
+    const resetMediaPage = () => {
+        state.currentMediaClips = [];
+        state.isEditMode = false;
+        state.currentlyEditingProjectId = null;
+        dom.mediaPage.title.textContent = 'Neues Projekt';
+        dom.mediaPage.actionBtn.textContent = 'Projekt erstellen';
+        renderMediaClips();
+        updateMediaCounter();
+    };
+
+    const createPerforations = (container) => {
+        if (!container) return;
+        container.innerHTML = '';
+        const holeCount = Math.floor(container.clientWidth / 20);
+        for (let i = 0; i < holeCount; i++) {
+            const hole = document.createElement('div');
+            hole.className = 'perforation-hole';
+            container.appendChild(hole);
+        }
+    };
+
+    const renderMediaClips = () => {
+        dom.mediaPage.filmStrip.innerHTML = '';
+        state.currentMediaClips.forEach(clip => {
+            const frame = createMediaFrame(clip);
+            const slot = document.createElement('div');
+            slot.className = 'film-slot';
+            slot.dataset.slotFor = clip.id;
+            slot.appendChild(frame);
+            dom.mediaPage.filmStrip.appendChild(slot);
+        });
+
+        const emptySlotsCount = state.MAX_FRAMES - state.currentMediaClips.length;
+        for (let i = 0; i < emptySlotsCount; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'film-slot';
+            dom.mediaPage.filmStrip.appendChild(slot);
+        }
+        updateAddMediaButton();
+        updateMediaCounter();
+    };
+
+    const updateAddMediaButton = () => {
+        const firstEmptySlot = Array.from(dom.mediaPage.filmStrip.children).find(slot => slot.childElementCount === 0);
+        if (firstEmptySlot) {
+            firstEmptySlot.appendChild(dom.mediaPage.addMediaFrame);
+            dom.mediaPage.addMediaFrame.style.display = 'flex';
+        } else {
+            dom.mediaPage.addMediaFrame.style.display = 'none';
+        }
+        dom.mediaPage.actionBtn.disabled = state.currentMediaClips.length === 0;
+    };
+
+    const createMediaFrame = (clip) => {
+        const frame = document.createElement('div');
+        frame.className = 'film-frame-item';
+        frame.dataset.id = clip.id;
+        frame.draggable = true;
+
+        let previewHtml = '';
+        if (clip.type.startsWith('image')) {
+            previewHtml = `<img src="${clip.src}" class="w-full h-full object-cover" draggable="false">`;
+        } else if (clip.type.startsWith('video')) {
+            previewHtml = `<video src="${clip.src}#t=0.5" class="w-full h-full object-cover" muted playsinline draggable="false"></video>`;
+        } else {
+            previewHtml = `<div class="p-2 text-center flex items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.09.21zM16.383 3.076A1 1 0 0117 4v12a1 1 0 01-1.707.707l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.09.21z" clip-rule="evenodd" /></svg></div>`;
+        }
+
+        // Autoren-Label hinzufügen, wenn ein Autor vorhanden ist
+        const authorHtml = clip.author ? `<div class="author-tag" title="Erstellt von ${clip.author}">${clip.author.charAt(0).toUpperCase()}</div>` : '';
+
+        frame.innerHTML = `
+        <div class="w-full h-full relative">
+            ${previewHtml}
+            ${authorHtml}
+        </div>
+        <button class="delete-media-btn absolute top-1 right-1 w-6 h-6 bg-red-600 rounded-full flex items-center justify-center text-white z-10">
+           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>`;
+
+        frame.querySelector('.delete-media-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            state.currentMediaClips = state.currentMediaClips.filter(c => c.id != clip.id);
+            renderMediaClips();
+        });
+
+        return frame;
+    };
+
+    const renderAllProjects = () => {
+        dom.projectsPage.container.innerHTML = '';
+        if (state.allProjects.length === 0) {
+            dom.projectsPage.container.innerHTML = `<p class="text-center text-gray-500">Noch keine Projekte erstellt.</p>`;
+            return;
+        }
+        state.allProjects.forEach(p => dom.projectsPage.container.appendChild(createProjectCard(p)));
+        renderProjectMarkers();
+    };
+
+
+    const createProjectCard = (project) => {
+        const card = document.createElement('div');
+        card.className = 'project-card flex flex-col items-stretch';
+
+        // HTML für einen flexiblen Medien-Container generieren
+        let mediaPreviewsHTML;
+        if (project.media && project.media.length > 0) {
+            const mediaItemsHTML = project.media.map((mediaItem, index) => {
+                // Jedes Element ist ein flexibler Container, der wächst, um den Platz zu füllen.
+                // Eine dünne weiße Linie trennt die Elemente.
+                const itemContainerClasses = `flex-1 relative overflow-hidden ${index < project.media.length - 1 ? 'border-r-2 border-white' : ''}`;
+                const mediaElementClasses = "w-full h-full object-cover absolute inset-0";
+                let previewElement = '';
+
+                if (mediaItem.type.startsWith('image')) {
+                    previewElement = `<img src="${mediaItem.src}" alt="Vorschau" class="${mediaElementClasses}">`;
+                } else if (mediaItem.type.startsWith('video')) {
+                    previewElement = `
+                    <video class="${mediaElementClasses}" src="${mediaItem.src}#t=0.5" preload="metadata"></video>
+                    <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center pointer-events-none">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                    </div>`;
+                } else { // Fallback für Audio oder andere Typen
+                    previewElement = `
+                    <div class="w-full h-full flex items-center justify-center bg-gray-200">
+                        <svg class="w-10 h-10 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 6l12-3" />
+                        </svg>
+                    </div>`;
+                }
+                return `<div class="${itemContainerClasses}">${previewElement}</div>`;
+            }).join('');
+
+            // Der Hauptcontainer ist nun ein Flex-Container anstelle eines Scroll-Containers.
+            mediaPreviewsHTML = `
+            <div class="media-previews-container cursor-pointer w-full h-32 flex bg-gray-100">
+                ${mediaItemsHTML}
+            </div>`;
+        } else {
+            // Der Platzhalter bleibt unverändert.
+            mediaPreviewsHTML = `
+            <div class="w-full h-32 flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
+                Keine Medien vorhanden
+            </div>`;
+        }
+
+        // HTML-Struktur für die Karte
+        card.innerHTML = `
+        ${mediaPreviewsHTML}
+
+        <div class="p-4 flex-grow flex flex-col">
+            <h4 class="title font-bold text-lg text-gray-800 mb-2">${project.title}</h4>
+            <p class="text-sm text-gray-600 mb-3 flex-grow">${project.description.substring(0, 80)}${project.description.length > 80 ? '...' : ''}</p>
+            
+            <div class="flex items-center gap-4 text-xs text-gray-500">
+                <div class="flex items-center gap-1">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.1.4-.223.654-.369.395-.226.86-.52 1.358-.863.564-.406 1.258-1.002 1.927-1.762C15.93 13.36 17 11.45 17 9.5 17 5.91 13.866 3 10 3S3 5.91 3 9.5c0 1.95.932 3.86 2.565 5.408.67.76 1.363 1.356 1.927 1.762.498.343.963.637 1.358.863.254.146.468.27.654.369a5.745 5.745 0 00.28.14l.025.011.006.003zM10 11.25a1.75 1.75 0 100-3.5 1.75 1.75 0 000 3.5z" clip-rule="evenodd" /></svg>
+                    <span>${project.address ? project.address.split(',')[0] : 'Kein Ort'}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3.5A1.5 1.5 0 018.5 2h3A1.5 1.5 0 0113 3.5v1.586a1.5 1.5 0 01-.44 1.06L9.5 9.586V16.5a1.5 1.5 0 01-3 0V9.586L3.44 6.146A1.5 1.5 0 013 4.586V3.5z" /></svg>
+                    <span>${project.media.length}/5 Medien</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex-shrink-0 flex items-center justify-end gap-1 p-2 bg-gray-50 border-t border-gray-100">
+            <button data-action="edit-info" title="Infos bearbeiten" class="p-2 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7a2 2 0 012-2h4l-2 2H7v5H5z"></path></svg>
+            </button>
+            <button data-action="edit-clips" title="Clips bearbeiten" class="p-2 rounded-full text-gray-600 hover:bg-gray-200 transition-colors">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"></path></svg>
+            </button>
+            <button data-action="delete" title="Löschen" class="p-2 rounded-full text-red-600 hover:bg-red-100 transition-colors">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
+            </button>
+        </div>
+    `;
+
+        // Event-Listener für die neuen Elemente zuweisen
+        const mediaContainer = card.querySelector('.media-previews-container');
+        if (mediaContainer) {
+            mediaContainer.addEventListener('click', () => openPlayback(project.media));
+        }
+        card.querySelector('[data-action="edit-info"]').addEventListener('click', () => openProjectModal(project));
+        card.querySelector('[data-action="edit-clips"]').addEventListener('click', () => handleEditClips(project));
+        card.querySelector('[data-action="delete"]').addEventListener('click', () => {
+            if (confirm(`Möchtest du das Projekt "${project.title}" wirklich löschen?`)) {
+                state.allProjects = state.allProjects.filter(p => p.id !== project.id);
+                renderAllProjects();
+                showToast("Projekt gelöscht.");
+                saveProjectsToStorage();
+            }
+        });
+
+        return card;
+    };
+
+    // Bearbeiten
+    const handleEditClips = (project) => {
+        state.isEditMode = true;
+        state.currentlyEditingProjectId = project.id;
+        state.currentMediaClips = JSON.parse(JSON.stringify(project.media));
+        dom.mediaPage.title.textContent = `Bearbeite: ${project.title}`;
+        dom.mediaPage.actionBtn.textContent = 'Änderungen speichern';
+        renderMediaClips();
+        switchPage('media-page');
+        saveProjectsToStorage()
+    };
+
+    // Änderungen speichern
+    const handleSaveClipChanges = () => {
+        const projectIndex = state.allProjects.findIndex(p => p.id === state.currentlyEditingProjectId);
+        if (projectIndex > -1) {
+            state.allProjects[projectIndex].media = state.currentMediaClips;
+            if (state.currentMediaClips.length > 0) {
+                state.allProjects[projectIndex].thumbnail = state.currentMediaClips[0].src;
+            } else {
+                state.allProjects[projectIndex].thumbnail = 'https://placehold.co/80x80/e0e0e0/333?text=leer';
+            }
+        }
+        showToast("Änderungen gespeichert!");
+        renderAllProjects();
+        switchPage('projects-page');
+        saveProjectsToStorage()
+    };
+
+    // Karte initialisieren
+    const initMap = (mapElement, options) => {
+        const map = L.map(mapElement, { scrollWheelZoom: true }).setView(options.center, options.zoom);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+
+        // Legende zur Karte hinzufügen
+        const legend = L.control({ position: 'bottomright' });
+        legend.onAdd = function (map) {
+            const div = L.DomUtil.create('div', 'map-legend');
+            div.innerHTML =
+                '<h4>Legende</h4>' +
+                '<i style="background: var(--brand-orange)"></i> Solo-Projekt<br>' +
+                '<i style="background: #1E90FF"></i> Collab-Projekt';
+            return div;
+        };
+        legend.addTo(map);
+
+        return map;
+    };
+
+    // Funktion zum Auf und Zuklappen der Beschreibung im Popup
+    function toggleDescription(button, elementId) {
+        const descriptionDiv = document.getElementById(elementId);
+        if (!descriptionDiv) return;
+
+        const isHidden = descriptionDiv.style.display === 'none';
+
+        // SVG-Icon für "Zuklappen" (Chevron nach oben)
+        const chevronUp = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>';
+
+        // SVG-Icon für "Aufklappen" (Chevron nach unten)
+        const chevronDown = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>';
+
+        if (isHidden) {
+            descriptionDiv.style.display = 'block';
+            button.innerHTML = chevronUp;
+        } else {
+            descriptionDiv.style.display = 'none';
+            button.innerHTML = chevronDown;
+        }
+    }
+
+    const renderProjectMarkers = () => {
+        if (!state.maps.main) return;
+        state.maps.projectMarkers.forEach(marker => marker.remove());
+        state.maps.projectMarkers = [];
+
+        const formatDistance = (meters) => {
+            if (meters < 1000) return `${Math.round(meters)} m`;
+            return `${(meters / 1000).toFixed(1)} km`;
+        };
+
+        const userLatLng = state.maps.userLocation ? L.latLng(state.maps.userLocation.lat, state.maps.userLocation.lng) : null;
+
+        state.allProjects.filter(p => p.location).forEach(project => {
+            const markerClass = project.mode === 'together' ? 'marker-collab' : 'marker-single';
+            const customIcon = L.divIcon({
+                className: `walkby-marker-icon ${markerClass}`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+
+            const marker = L.marker([project.location.lat, project.location.lng], { icon: customIcon }).addTo(state.maps.main);
+
+            // Daten für das Popup sammeln
+            const authorInfo = project.createdBy ? `<div class="popup-info-row"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg><span>Erstellt von <strong>${project.createdBy}</strong></span></div>` : '';
+            const mediaCount = project.media.length;
+            const mediaInfo = `<div class="popup-info-row"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2-2H4a2 2 0 01-2-2v-4z" /></svg><span>${mediaCount} ${mediaCount === 1 ? 'Medium' : 'Medien'}</span></div>`;
+            const creationDate = new Date(project.id).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const dateInfo = `<div class="popup-info-row"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" /></svg><span>${creationDate}</span></div>`;
+
+            let distanceInfo = '';
+            if (userLatLng) {
+                const projectLatLng = L.latLng(project.location.lat, project.location.lng);
+                distanceInfo = `<div class="popup-info-row"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><span>ca. ${formatDistance(userLatLng.distanceTo(projectLatLng))} entfernt</span></div>`;
+            }
+
+            let thumbnailElementHTML;
+            if (project.media && project.media.length > 0) {
+                const firstMedia = project.media[0];
+                if (firstMedia.type.startsWith('video')) {
+                    // Create a <video> element for video previews
+                    thumbnailElementHTML = `<video src="${firstMedia.src}#t=0.5" class="w-full h-full object-cover" muted preload="metadata"></video>`;
+                } else {
+                    // Create an <img> element for images
+                    thumbnailElementHTML = `<img src="${firstMedia.src}" alt="Vorschau für ${project.title}" class="w-full h-full object-cover">`;
+                }
+            } else {
+                // Fallback if there is no media
+                thumbnailElementHTML = `<img src="https://placehold.co/200x100/e0e0e0/666?text=Vorschau" alt="Keine Vorschau" class="w-full h-full object-cover">`;
+            }
+
+            const descriptionId = `desc-${project.id}`;
+            const popupContent = `
+    <div class="walkby-popup w-56">
+        <div class="h-24 bg-gray-200">
+            ${thumbnailElementHTML}
+        </div>
+        <div class="p-3">
+            <div class="popup-title-container">
+                <h3 class="font-bold text-base truncate">${project.title}</h3>
+                ${project.description ? `
+                <button class="toggle-description-btn" onclick="toggleDescription(this, '${descriptionId}'); event.stopPropagation();">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                </button>
+                ` : ''}
+            </div>
+            <div id="${descriptionId}" class="description-content" style="display: none;">
+                <p>${project.description}</p>
+            </div>
+            <div class="space-y-1.5 text-sm text-gray-700 mt-3">
+                ${authorInfo}
+                ${mediaInfo}
+                ${dateInfo} 
+                ${distanceInfo}
+            </div>
+        </div>
+        <div class="px-3 pb-2 pt-2 border-t border-gray-100 flex justify-end items-center">
+            ${project.mode === 'together'
+                    ? `<button class="text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 px-3 py-1.5 rounded-md" onclick="handleJoinProject(${project.id})">Mitmachen!</button>`
+                    : `<button class="text-sm font-bold text-[var(--brand-orange)] hover:text-[var(--brand-orange-dark)]" onclick="viewProjectById(${project.id})">Ansehen</button>`
+                }
+        </div>
+    </div>`;
+
+            marker.bindPopup(popupContent, { className: 'custom-walkby-popup' });
+            state.maps.projectMarkers.push(marker);
+        });
+    };
+
+    // NEU: Die Funktion für den "Mitmachen"-Button
+    const handleJoinProject = (projectId) => {
+        if (state.maps.main) {
+            state.maps.main.closePopup();
+        }
+        const project = state.allProjects.find(p => p.id === projectId);
+        if (project) {
+            showToast(`Du bearbeitest jetzt das Projekt: "${project.title}"`);
+            handleEditClips(project);
+        }
+    };
+
+    // ==== JS MODIFICATION HELPER FUNCTION ====
+    const updateModeSelection = (selectedMode) => {
+        dom.projectModal.modeValue.value = selectedMode;
+        dom.projectModal.modeContainer.querySelectorAll('button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.mode === selectedMode);
+        });
+    };
+    // ==== END JS MODIFICATION ====
+
+    const openProjectModal = (project = null) => {
+        const isEditing = project !== null;
+        dom.projectModal.title.textContent = isEditing ? "Projekt bearbeiten" : "Neues Projekt erstellen";
+        dom.projectModal.id.value = isEditing ? project.id : '';
+        dom.projectModal.projectTitle.value = isEditing ? project.title : '';
+        dom.projectModal.description.value = isEditing ? project.description : '';
+        dom.projectModal.locationInput.value = isEditing ? project.address || '' : '';
+        state.maps.currentPinLocation = isEditing ? project.location : null;
+
+        // ==== JS MODIFICATION ====
+        const mode = isEditing ? project.mode : 'single';
+        updateModeSelection(mode);
+        // ==== END JS MODIFICATION ====
+
+        switchModalTab('details');
+        toggleModal(dom.projectModal.modal, true);
+    };
+
+    const switchModalTab = (tabName) => {
+        const isDetails = tabName === 'details';
+        dom.projectModal.tabDetails.classList.toggle('active', isDetails);
+        dom.projectModal.tabLocation.classList.toggle('active', !isDetails);
+        dom.projectModal.contentDetails.classList.toggle('hidden', !isDetails);
+        dom.projectModal.contentLocation.classList.toggle('hidden', isDetails);
+
+        if (!isDetails) {
+            if (!state.maps.modal) {
+                state.maps.modal = initMap(dom.projectModal.mapElement, { center: [53.55, 9.99], zoom: 12 });
+                state.maps.modal.on('click', (e) => updateModalPin(e.latlng, true));
+            }
+            setTimeout(() => {
+                state.maps.modal.invalidateSize();
+                if (state.maps.currentPinLocation) {
+                    updateModalPin(state.maps.currentPinLocation);
+                }
+            }, 10);
+        }
+    };
+
+    const updateModalPin = (latlng, fromClick = false) => {
+        state.maps.currentPinLocation = { lat: latlng.lat, lng: latlng.lng };
+        if (!state.maps.modalMarker) {
+            state.maps.modalMarker = L.marker(latlng).addTo(state.maps.modal);
+        } else {
+            state.maps.modalMarker.setLatLng(latlng);
+        }
+        state.maps.modal.panTo(latlng);
+
+        if (fromClick) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`)
+                .then(res => res.json()).then(data => {
+                    if (data && data.display_name) dom.projectModal.locationInput.value = data.display_name;
+                });
+        }
+    };
+
+    // Hilfsfunktion, um das Ambilight zu stoppen und zurückzusetzen
+    const stopAndResetAmbilight = () => {
+        if (state.playback.ambilightInterval) {
+            clearInterval(state.playback.ambilightInterval);
+            state.playback.ambilightInterval = null;
+        }
+        // Setzt den Schein auf einen neutralen Standardwert zurück
+        dom.playbackModal.mediaContainer.style.boxShadow = '0 0 300px 100px rgba(255, 255, 255, 0.1)';
+    };
+
+    /**
+     * Wendet eine Farbe als "Ambilight" Schein an.
+     * @param {{r: number, g: number, b: number}} color - Das RGB-Farbobjekt.
+     * @param {number} opacity - Die gewünschte Deckkraft des Scheins (0 bis 1).
+     */
+    const applyAmbilight = (color, opacity = 0.5) => {
+        if (color) {
+            const glowColor = `rgba(${color.r}, ${color.g}, ${color.b}, ${opacity})`;
+            // Format: box-shadow: [Unschärfe] [Ausdehnung] [Farbe]
+            dom.playbackModal.mediaContainer.style.boxShadow = `0 0 300px 100px ${glowColor}`;
+        }
+    };
+
+    /**
+     * Analysiert ein Bild- oder Videoelement mit einem Canvas, um die dominante Farbe zu ermitteln.
+     * @param {HTMLImageElement|HTMLVideoElement} mediaElement - Das zu analysierende Medium.
+     * @returns {Promise<{r: number, g: number, b: number}>} - Ein Promise, das mit der dominanten Farbe aufgelöst wird.
+     */
+    const getDominantColor = (mediaElement) => {
+        return new Promise((resolve) => {
+            const canvas = document.createElement('canvas');
+            // Das zweite Argument aktiviert eine Hardware-beschleunigte 2D-Rendering-Engine, falls verfügbar
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const width = 50; // Eine geringe Auflösung reicht für die Analyse und ist performant
+            const height = 50;
+            canvas.width = width;
+            canvas.height = height;
+
+            try {
+                ctx.drawImage(mediaElement, 0, 0, width, height);
+                const data = ctx.getImageData(0, 0, width, height).data;
+                let r = 0, g = 0, b = 0, count = 0;
+
+                // Wir analysieren nicht jeden Pixel, um die Performance zu schonen (z.B. jeden 10.)
+                for (let i = 0; i < data.length; i += 4 * 10) {
+                    // KORREKTUR: Der übermäßig strenge Filter wurde entfernt.
+                    // Wir summieren jetzt einfach alle Pixelfarben auf.
+                    r += data[i];
+                    g += data[i + 1];
+                    b += data[i + 2];
+                    count++;
+                }
+
+                // Berechne den Durchschnitt, nur wenn Pixel gezählt wurden
+                if (count > 0) {
+                    r = ~~(r / count);
+                    g = ~~(g / count);
+                    b = ~~(b / count);
+                    resolve({ r, g, b });
+                } else {
+                    resolve(null); // Falls keine Pixel gefunden wurden
+                }
+
+            } catch (e) {
+                // Falls ein Fehler auftritt (z.B. CORS bei Bildern), geben wir nichts zurück
+                console.error("Fehler bei der Farbanalyse:", e);
+                resolve(null);
+            }
+        });
+    };
+
+    const openPlayback = (mediaItems) => {
+        if (!mediaItems || mediaItems.length === 0) return;
+
+        state.playback = { items: mediaItems, currentIndex: 0, isPlaying: true, timeout: null };
+
+        // Setzt die Animation zurück und startet sie
+        const { modal, filmIntro } = dom.playbackModal;
+        filmIntro.classList.remove('is-playing');
+        modal.classList.remove('is-playing');
+        filmIntro.style.display = 'block';
+        const leader = filmIntro.querySelector('.film-leader');
+        const newLeader = leader.cloneNode(true);
+        leader.parentNode.replaceChild(newLeader, leader);
+
+        toggleModal(modal, true);
+
+        // Löst die CSS-Übergänge aus
+        setTimeout(() => {
+            filmIntro.classList.add('is-playing');
+            modal.classList.add('is-playing');
+        }, 10);
+
+        // Startet die eigentliche Medienwiedergabe NACH der Intro-Animation
+        setTimeout(() => {
+            if (state.playback.isPlaying) {
+                renderProgressDots();
+                playCurrentItem();
+            }
+        }, 2500);
+    };
+
+
+    const closePlayback = () => {
+        clearTimeout(state.playback.timeout);
+        stopAndResetAmbilight(); // <<< NEU: Stellt sicher, dass alles sauber beendet wird.
+
+        state.playback.isPlaying = false;
+
+        const { modal, filmIntro, mediaContainer } = dom.playbackModal;
+        mediaContainer.innerHTML = '';
+        filmIntro.style.display = 'none';
+        modal.classList.remove('is-playing');
+
+        toggleModal(modal, false);
+    };
+
+    const playCurrentItem = () => {
+        clearTimeout(state.playback.timeout);
+        stopAndResetAmbilight(); // Ambilight stoppen & zurücksetzen
+
+        const item = state.playback.items[state.playback.currentIndex];
+        const container = dom.playbackModal.mediaContainer;
+        container.innerHTML = '';
+
+        let element;
+        if (item.type.startsWith('image')) {
+            element = document.createElement('img');
+            // Ambilight für Bilder: Farbe einmalig nach dem Laden ermitteln
+            element.onload = () => {
+                if (state.playback.isPlaying) {
+                    getDominantColor(element).then(color => applyAmbilight(color, 0.6));
+                }
+            };
+            state.playback.timeout = setTimeout(playNext, 4000);
+        } else if (item.type.startsWith('video')) {
+            element = document.createElement('video');
+            element.autoplay = true;
+            element.onended = playNext;
+
+            // Ambilight für Videos: Farbe kontinuierlich während der Wiedergabe ermitteln
+            element.onplay = () => {
+                state.playback.ambilightInterval = setInterval(() => {
+                    if (!element.paused) {
+                        getDominantColor(element).then(color => applyAmbilight(color, 0.45));
+                    }
+                }, 750); // Farbe alle 750ms neu berechnen für einen sanften Wechsel
+            };
+
+        } else if (item.type.startsWith('audio')) {
+            element = document.createElement('audio');
+            element.autoplay = true;
+            element.onended = playNext;
+            container.innerHTML = `<div class="text-white text-center p-8"><svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-gray-400 mx-auto" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.09.21z" clip-rule="evenodd" /></svg><p class="mt-4">Audio wird abgespielt...</p></div>`;
+        }
+
+        if (element) {
+            element.src = item.src;
+            //element.className = 'max-w-[95%] max-h-[95%] object-contain animate-fade-in rounded-lg shadow-2xl';
+            element.className = 'max-w-full max-h-full object-contain animate-fade-in rounded-lg shadow-2xl';
+            if (!item.type.startsWith('audio')) container.appendChild(element);
+            if (state.playback.isPlaying && (element.play || item.type.startsWith('audio'))) element.play().catch(() => { });
+        }
+        renderProgressDots();
+    };
+
+    const setIsPlaying = (playing) => {
+        state.playback.isPlaying = playing;
+        dom.playbackModal.playPauseBtn.innerHTML = playing
+            ? `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M14.25 2.25c-1.04 0-1.9.8-1.9 1.75v16.5c0 .95.86 1.75 1.9 1.75s1.9-.8 1.9-1.75V4c0-.95-.86-1.75-1.9-1.75zm-8.5 0c-1.04 0-1.9.8-1.9 1.75v16.5c0 .95.86 1.75 1.9 1.75s1.9-.8 1.9-1.75V4c0-.95-.86-1.75-1.9-1.75z"></path></svg>`
+            : `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M21.572 10.368l-15-8.25A2.25 2.25 0 003 4v16.5a2.25 2.25 0 003.572 1.882l15-8.25a2.25 2.25 0 000-3.764z"></path></svg>`;
+    };
+    const playNext = () => {
+        if (!state.playback.isPlaying) return;
+        state.playback.currentIndex = (state.playback.currentIndex + 1) % state.playback.items.length;
+        playCurrentItem();
+    };
+
+    const playPrev = () => {
+        if (!state.playback.isPlaying) return;
+        state.playback.currentIndex = (state.playback.currentIndex - 1 + state.playback.items.length) % state.playback.items.length;
+        playCurrentItem();
+    };
+
+    const renderProgressDots = () => {
+        setIsPlaying(state.playback.isPlaying);
+        dom.playbackModal.progressDots.innerHTML = state.playback.items.map((_, i) =>
+            `<div class="w-2 h-2 rounded-full ${i === state.playback.currentIndex ? 'bg-[var(--brand-orange)]' : 'bg-gray-400'}"></div>`
+        ).join('');
+    };
+
+    // Eine Hilfsfunktion zum Speichern
+    const saveProjectsToStorage = () => {
+        localStorage.setItem('walkbyProjects', JSON.stringify(state.allProjects));
+    };
+
+const handleSaveProject = async () => {
+    const title = dom.projectModal.projectTitle.value.trim();
+    if (!title) return alert("Bitte gib einen Projekttitel an.");
+
+    const editingId = dom.projectModal.id.value ? parseInt(dom.projectModal.id.value) : null;
+
+    // Projektdaten für die Datenbank vorbereiten
+    const projectData = {
+        title,
+        description: dom.projectModal.description.value.trim(),
+        mode: dom.projectModal.modeValue.value,
+        location: state.maps.currentPinLocation,
+        address: dom.projectModal.locationInput.value,
+        created_by: state.currentUser
+    };
+
+    if (editingId) {
+        // ---- UPDATE LOGIK (für später) ----
+        const { error } = await supabaseClient.from('projects').update(projectData).eq('id', editingId);
+        if (error) {
+            console.error('Fehler beim Aktualisieren:', error);
+            showToast("Projekt konnte nicht gespeichert werden.");
+            return;
+        }
+    } else {
+        // ---- NEUES PROJEKT ERSTELLEN ----
+        if (state.currentMediaClips.length === 0) return alert("Bitte füge mindestens einen Clip hinzu.");
+
+        // 1. Projekt in 'projects' Tabelle einfügen
+        const { data: newProject, error: projectError } = await supabaseClient
+            .from('projects')
+            .insert(projectData)
+            .select()
+            .single(); // .select().single() gibt das erstellte Objekt zurück
+
+        if (projectError) {
+            console.error('Fehler beim Erstellen des Projekts:', projectError);
+            showToast("Projekt konnte nicht erstellt werden.");
+            return;
+        }
+
+        // 2. Mediendaten für die 'media_clips' Tabelle vorbereiten
+        const clipsToInsert = state.currentMediaClips.map((clip, index) => ({
+            project_id: newProject.id, // Die ID des gerade erstellten Projekts
+            file_path: clip.path,      // Der private Pfad aus dem Storage-Upload
+            type: clip.type,
+            author: clip.author,
+            sort_order: index          // Reihenfolge speichern
+        }));
+
+        // 3. Alle Clips auf einmal in die 'media_clips' Tabelle einfügen
+        const { error: clipsError } = await supabaseClient.from('media_clips').insert(clipsToInsert);
+
+        if (clipsError) {
+            console.error('Fehler beim Speichern der Medien:', clipsError);
+            // Hier könntest du das gerade erstellte Projekt wieder löschen, um Datenmüll zu vermeiden
+            await supabaseClient.from('projects').delete().eq('id', newProject.id);
+            showToast("Medien konnten nicht gespeichert werden.");
+            return;
+        }
+
+        resetMediaPage();
+    }
+
+    showToast("Projekt erfolgreich gespeichert!");
+    await loadProjectsFromSupabase(); // Neu laden, um alles anzuzeigen
+    renderAllProjects();
+    toggleModal(dom.projectModal.modal, false);
+    switchPage('projects-page');
+};
+
+    const setupEventListeners = () => {
+        dom.navButtons.forEach(button => button.addEventListener('click', () => {
+            const pageId = button.id.replace('nav-', '') + '-page';
+            if (document.getElementById(state.activePage).id === 'media-page' && state.isEditMode) {
+                if (!confirm("Du hast ungespeicherte Änderungen. Willst du wirklich die Seite verlassen?")) return;
+            }
+            if (pageId === 'media-page') resetMediaPage();
+            switchPage(pageId);
+        }));
+
+        dom.projectsPage.addNewBtn.addEventListener('click', () => {
+            resetMediaPage();
+            switchPage('media-page');
+        });
+
+        dom.mediaPage.actionBtn.addEventListener('click', () => {
+            state.isEditMode ? handleSaveClipChanges() : openProjectModal();
+        });
+
+        dom.profileModal.openBtn.addEventListener('click', openProfileModal);
+        dom.profileModal.cancelBtn.addEventListener('click', () => toggleModal(dom.profileModal.modal, false));
+        dom.profileModal.saveBtn.addEventListener('click', saveAndCloseProfileModal);
+
+        dom.mediaPage.addMediaFrame.addEventListener('click', () => dom.mediaPage.mediaUploadInput.click());
+dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
+    const files = Array.from(event.target.files);
+    const availableSlots = state.MAX_FRAMES - state.currentMediaClips.length;
+
+    if (files.length > availableSlots) {
+        let message = `Limit von ${state.MAX_FRAMES} Medien erreicht.`;
+        if (availableSlots > 0) {
+            message += ` Nur die ersten ${availableSlots} Dateien wurden hinzugefügt.`;
+        }
+        showToast(message);
+    }
+
+    // Zeige einen Lade-Indikator
+    showToast('Lade Medien hoch...');
+
+    const newClipsPromises = files.slice(0, availableSlots).map(async (file) => {
+        const uploadResult = await uploadFileToSupabase(file, state.currentUser);
+        if (uploadResult) {
+            return {
+                id: Date.now() + Math.random(), // Temporäre Client-ID
+                src: uploadResult.publicUrl,    // Öffentliche URL für die Vorschau
+                path: uploadResult.path,        // Interner Pfad für die DB
+                type: file.type,
+                author: state.currentUser,
+            };
+        }
+        return null;
+    });
+
+    const newClips = (await Promise.all(newClipsPromises)).filter(Boolean); // filter(Boolean) entfernt null-Werte
+    state.currentMediaClips.push(...newClips);
+
+    if (newClips.length > 0) {
+        showToast(`${newClips.length} Medien erfolgreich hochgeladen!`);
+    }
+
+    renderMediaClips();
+    event.target.value = '';
+});
+
+        const filmStrip = dom.mediaPage.filmStrip;
+        filmStrip.addEventListener('dragstart', (e) => {
+            const frame = e.target.closest('.film-frame-item');
+            if (frame) {
+                state.draggedClipId = frame.dataset.id;
+                setTimeout(() => frame.classList.add('dragging'), 0);
+            }
+        });
+
+        filmStrip.addEventListener('dragend', (e) => {
+            const frame = e.target.closest('.film-frame-item');
+            if (frame) frame.classList.remove('dragging');
+            state.draggedClipId = null;
+        });
+
+        filmStrip.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const targetSlot = e.target.closest('.film-slot');
+            if (!targetSlot || !state.draggedClipId) return;
+
+            const droppedOnClipId = targetSlot.dataset.slotFor;
+            const fromIndex = state.currentMediaClips.findIndex(c => c.id == state.draggedClipId);
+            let toIndex = state.currentMediaClips.findIndex(c => c.id == droppedOnClipId);
+
+            if (toIndex === -1) {
+                const slots = Array.from(filmStrip.children);
+                toIndex = slots.indexOf(targetSlot);
+            }
+
+            if (fromIndex > -1 && toIndex > -1 && fromIndex !== toIndex) {
+                const [item] = state.currentMediaClips.splice(fromIndex, 1);
+                state.currentMediaClips.splice(toIndex, 0, item);
+                renderMediaClips();
+            }
+        });
+
+        filmStrip.addEventListener('dragover', (e) => e.preventDefault());
+
+        dom.projectModal.cancelBtn.addEventListener('click', () => toggleModal(dom.projectModal.modal, false));
+        dom.projectModal.confirmBtn.addEventListener('click', handleSaveProject);
+        dom.projectModal.tabDetails.addEventListener('click', () => switchModalTab('details'));
+        dom.projectModal.tabLocation.addEventListener('click', () => switchModalTab('location'));
+
+        // ==== JS MODIFICATION: Event Listener for new buttons ====
+        dom.projectModal.modeContainer.addEventListener('click', (e) => {
+            const selectedButton = e.target.closest('.mode-selector-btn');
+            if (selectedButton) {
+                const mode = selectedButton.dataset.mode;
+                updateModeSelection(mode);
+            }
+        });
+        // ==== END JS MODIFICATION ====
+
+        dom.projectModal.searchLocationBtn.addEventListener('click', async () => {
+            const query = dom.projectModal.locationInput.value;
+            if (!query) return;
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=de&limit=1`);
+                if (!response.ok) {
+                    throw new Error('Netzwerk-Antwort war nicht ok.');
+                }
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    const latlng = { lat: data[0].lat, lng: data[0].lon };
+                    updateModalPin(latlng);
+                    dom.projectModal.locationInput.value = data[0].display_name;
+                } else {
+                    showToast("Adresse konnte nicht gefunden werden.");
+                }
+            } catch (error) {
+                console.error("Fehler bei der Adresssuche:", error);
+                showToast("Ein Fehler ist aufgetreten.");
+            }
+        });
+
+        dom.projectModal.useMyLocationBtn.addEventListener('click', () => {
+    showToast("Standort wird ermittelt...");
+    requestUserLocation((position) => {
+        const userLatLng = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+        };
+        // Standort im state speichern, falls die Hauptkarte ihn noch nicht hat
+        state.maps.userLocation = userLatLng;
+        // Pin aktualisieren und die Adresse per Reverse-Geocoding holen
+        updateModalPin(userLatLng, true);
+        showToast("Standort gefunden!");
+    });
+});
+
+        dom.playbackModal.closeBtn.addEventListener('click', closePlayback);
+        dom.playbackModal.nextBtn.addEventListener('click', playNext);
+        dom.playbackModal.prevBtn.addEventListener('click', playPrev);
+        dom.playbackModal.playPauseBtn.addEventListener('click', () => {
+            setIsPlaying(!state.playback.isPlaying);
+            const mediaElement = dom.playbackModal.mediaContainer.querySelector('video, audio');
+            if (state.playback.isPlaying) {
+                if (mediaElement) mediaElement.play();
+                else playNext();
+            } else {
+                clearTimeout(state.playback.timeout);
+                if (mediaElement) mediaElement.pause();
+            }
+        });
+    };
+
+const init = async () => { // Mache die Funktion async
+    loadUserFromStorage();
+    setupEventListeners();
+    resetMediaPage();
+    
+    await loadProjectsFromSupabase(); // Projekte aus Supabase laden
+    renderAllProjects(); // Projekte rendern
+    
+    switchPage('media-page');
+
+    createPerforations(dom.mediaPage.perfTop);
+    createPerforations(dom.mediaPage.perfBottom);
+    new ResizeObserver(() => {
+        createPerforations(dom.mediaPage.perfTop);
+        createPerforations(dom.mediaPage.perfBottom);
+    }).observe(dom.mediaPage.perfTop);
+
+    window.viewProjectById = (id) => {
+        const project = state.allProjects.find(p => p.id === id);
+        if (project) openPlayback(project.media);
+    };
+
+    window.handleJoinProject = handleJoinProject;
+    window.toggleDescription = toggleDescription;
+};
+
+const loadProjectsFromSupabase = async () => {
+    // Lädt Projekte und die zugehörigen Medien-Clips in einer einzigen Abfrage
+    const { data, error } = await supabaseClient
+        .from('projects')
+        .select(`
+            *,
+            media_clips (
+                file_path,
+                type,
+                author,
+                sort_order
+            )
+        `)
+        .order('created_at', { ascending: false }); // Neueste zuerst
+
+    if (error) {
+        console.error("Fehler beim Laden der Projekte:", error);
+        return;
+    }
+
+    // Daten in das Format umwandeln, das deine App erwartet
+    state.allProjects = data.map(project => {
+        const media = project.media_clips
+            .sort((a, b) => a.sort_order - b.sort_order) // Sortieren sicherstellen
+            .map(clip => ({
+                id: clip.file_path, // Eindeutige ID
+                src: supabaseClient.storage.from('media-clips').getPublicUrl(clip.file_path).data.publicUrl,
+                type: clip.type,
+                author: clip.author
+            }));
+
+        return {
+            id: project.id,
+            title: project.title,
+            description: project.description,
+            location: project.location,
+            address: project.address,
+            mode: project.mode,
+            createdBy: project.created_by,
+            media: media
+        };
+    });
+};
+
+    // Medien Zähler
+    const updateMediaCounter = () => {
+        const counterElement = document.getElementById('media-counter');
+        const currentCount = state.currentMediaClips.length;
+        counterElement.textContent = `${currentCount}/${state.MAX_FRAMES} Medien`;
+    };
+
+    // Profil Modal öffnen
+    const openProfileModal = () => {
+        dom.profileModal.usernameInput.value = state.currentUser === 'Gast' ? '' : state.currentUser;
+        toggleModal(dom.profileModal.modal, true);
+    };
+
+    // Profil speichern und schließen
+    const saveAndCloseProfileModal = () => {
+        const newName = dom.profileModal.usernameInput.value.trim();
+        if (newName) {
+            state.currentUser = newName;
+            localStorage.setItem('walkbyUsername', newName);
+            showToast(`Name gespeichert: ${newName}`);
+        }
+        toggleModal(dom.profileModal.modal, false);
+    };
+
+    // Profil vom speicher öffnen
+    const loadUserFromStorage = () => {
+        const savedName = localStorage.getItem('walkbyUsername');
+        if (savedName) {
+            state.currentUser = savedName;
+        }
+    };
+
+    init();
+});
+
+const uploadFileToSupabase = async (file, user) => {
+    // Erstellt einen eindeutigen Dateipfad, um Konflikte zu vermeiden
+    const filePath = `${user}/${Date.now()}-${file.name}`;
+
+    const { data, error } = await supabaseClient.storage
+        .from('media-clips') // Name deines Buckets
+        .upload(filePath, file);
+
+    if (error) {
+        console.error('Fehler beim Upload:', error);
+        return null;
+    }
+
+    // Holt die öffentliche URL der gerade hochgeladenen Datei
+    const { data: urlData } = supabaseClient.storage
+        .from('media-clips')
+        .getPublicUrl(data.path);
+
+    return {
+        path: data.path, // Der interne Pfad zum Speichern in der DB
+        publicUrl: urlData.publicUrl // Die URL zum Anzeigen
+    };
+};
