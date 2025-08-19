@@ -452,13 +452,13 @@ document.addEventListener('DOMContentLoaded', () => {
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
 
         // Legende zur Karte hinzufügen
-        const legend = L.control({ position: 'bottomright' });
+        const legend = L.control({ position: 'topright' });
         legend.onAdd = function (map) {
             const div = L.DomUtil.create('div', 'map-legend');
             div.innerHTML =
                 '<h4>Legende</h4>' +
                 '<i style="background: var(--brand-orange)"></i> Solo-Projekt<br>' +
-                '<i style="background: #1E90FF"></i> Collab-Projekt';
+                '<i style="background: #ff1e1e"></i> Collab-Projekt';
             return div;
         };
         legend.addTo(map);
@@ -513,8 +513,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Daten für das Popup sammeln
             const authorInfo = project.createdBy ? `<div class="popup-info-row"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg><span>Erstellt von <strong>${project.createdBy}</strong></span></div>` : '';
             const mediaCount = project.media.length;
-            const mediaInfo = `<div class="popup-info-row"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2-2H4a2 2 0 01-2-2v-4z" /></svg><span>${mediaCount} ${mediaCount === 1 ? 'Medium' : 'Medien'}</span></div>`;
-            const creationDate = new Date(project.id).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const mediaInfo = `<div class="popup-info-row"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2-2H4a2 2 0 01-2-2v-4z" /></svg><span>${mediaCount} von ${state.MAX_FRAMES} Medien</span></div>`;
+            const creationDate = new Date(project.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
             const dateInfo = `<div class="popup-info-row"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" /></svg><span>${creationDate}</span></div>`;
 
             let distanceInfo = '';
@@ -546,7 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="p-3">
             <div class="popup-title-container">
-                <h3 class="font-bold text-base truncate">${project.title}</h3>
+                <h3 class="font-bold text-base">${project.title}</h3>
                 ${project.description ? `
                 <button class="toggle-description-btn" onclick="toggleDescription(this, '${descriptionId}'); event.stopPropagation();">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
@@ -576,7 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // NEU: Die Funktion für den "Mitmachen"-Button
+    // Die Funktion für den "Mitmachen"-Button
     const handleJoinProject = (projectId) => {
         if (state.maps.main) {
             state.maps.main.closePopup();
@@ -1148,7 +1148,6 @@ const checkUser = async () => {
 // main.js
 
 const updateUserUI = (user) => {
-    // state.currentUser = user; // ALTE ZEILE
     if (user) {
         // NEU: Setze den Benutzernamen als state.currentUser
         state.currentUser = user.user_metadata?.username; 
@@ -1248,6 +1247,7 @@ const loadProjectsFromSupabase = async () => {
             address: project.address,
             mode: project.mode,
             createdBy: project.created_by,
+            createdAt: project.created_at,
             media: media
         };
     });
