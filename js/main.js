@@ -74,19 +74,25 @@ document.addEventListener('DOMContentLoaded', () => {
             filmIntro: document.getElementById('film-intro-overlay'),
         },
 
-        profileModal: {
-            modal: document.getElementById('profile-modal'),
-            usernameInput: document.getElementById('username-input'),
-            saveBtn: document.getElementById('save-profile-changes'),
-            cancelBtn: document.getElementById('cancel-profile-changes'),
-            openBtn: document.getElementById('profile-settings-btn')
+        auth: {
+            modal: document.getElementById('auth-modal'),
+            form: document.getElementById('auth-form'),
+            title: document.getElementById('auth-modal-title'),
+            usernameInput: document.getElementById('auth-username'),
+            passwordInput: document.getElementById('auth-password'),
+            submitBtn: document.getElementById('auth-submit-btn'),
+            switchBtn: document.getElementById('auth-switch-btn'),
+            switchText: document.getElementById('auth-switch-text'),
+            loginBtn: document.getElementById('login-btn'),
+            logoutBtn: document.getElementById('logout-btn'),
+            userAvatar: document.getElementById('user-avatar'),
         }
 
     };
 
     const state = {
         activePage: 'media-page',
-        currentUser: 'Gast',
+        currentUser: null,
         allProjects: [],
         currentMediaClips: [],
         isEditMode: false,
@@ -107,7 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
             currentPinLocation: null,
             userLocationRequested: false
         },
-        MAX_FRAMES: 5
+        MAX_FRAMES: 5,
+        authMode: 'login' 
     };
 
     const userLocationIcon = L.divIcon({
@@ -669,53 +676,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    /**
-     * Analysiert ein Bild- oder Videoelement mit einem Canvas, um die dominante Farbe zu ermitteln.
-     * @param {HTMLImageElement|HTMLVideoElement} mediaElement - Das zu analysierende Medium.
-     * @returns {Promise<{r: number, g: number, b: number}>} - Ein Promise, das mit der dominanten Farbe aufgelöst wird.
-     */
-    const getDominantColor = (mediaElement) => {
-        return new Promise((resolve) => {
-            const canvas = document.createElement('canvas');
-            // Das zweite Argument aktiviert eine Hardware-beschleunigte 2D-Rendering-Engine, falls verfügbar
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
-            const width = 50; // Eine geringe Auflösung reicht für die Analyse und ist performant
-            const height = 50;
-            canvas.width = width;
-            canvas.height = height;
+/**
+ * Analysiert ein Bild oder Video und findet die dominanteste (gesättigtste) Farbe.
+ * @param {HTMLImageElement|HTMLVideoElement} mediaElement - Das zu analysierende Medium.
+ * @returns {Promise<{r: number, g: number, b: number} | null>} - Ein Promise mit der dominantesten Farbe.
+ */
+const getDominantColor = (mediaElement) => {
+    return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const width = 50;
+        const height = 50;
+        canvas.width = width;
+        canvas.height = height;
 
-            try {
-                ctx.drawImage(mediaElement, 0, 0, width, height);
-                const data = ctx.getImageData(0, 0, width, height).data;
-                let r = 0, g = 0, b = 0, count = 0;
+        try {
+            ctx.drawImage(mediaElement, 0, 0, width, height);
+            const data = ctx.getImageData(0, 0, width, height).data;
+            
+            let dominantColor = null;
+            let maxSaturation = -1;
 
-                // Wir analysieren nicht jeden Pixel, um die Performance zu schonen (z.B. jeden 10.)
-                for (let i = 0; i < data.length; i += 4 * 10) {
-                    // KORREKTUR: Der übermäßig strenge Filter wurde entfernt.
-                    // Wir summieren jetzt einfach alle Pixelfarben auf.
-                    r += data[i];
-                    g += data[i + 1];
-                    b += data[i + 2];
-                    count++;
+            for (let i = 0; i < data.length; i += 4 * 10) { // Wir prüfen jeden 10. Pixel
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+
+                // Überspringe sehr dunkle oder sehr helle Pixel
+                if (r < 15 && g < 15 && b < 15) continue;
+                if (r > 240 && g > 240 && b > 240) continue;
+
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                const saturation = max - min;
+
+                // Wir suchen nach der Farbe mit der höchsten Sättigung
+                if (saturation > maxSaturation) {
+                    maxSaturation = saturation;
+                    dominantColor = { r, g, b };
                 }
-
-                // Berechne den Durchschnitt, nur wenn Pixel gezählt wurden
-                if (count > 0) {
-                    r = ~~(r / count);
-                    g = ~~(g / count);
-                    b = ~~(b / count);
-                    resolve({ r, g, b });
-                } else {
-                    resolve(null); // Falls keine Pixel gefunden wurden
-                }
-
-            } catch (e) {
-                // Falls ein Fehler auftritt (z.B. CORS bei Bildern), geben wir nichts zurück
-                console.error("Fehler bei der Farbanalyse:", e);
-                resolve(null);
             }
-        });
-    };
+            
+            // Gib die dominanteste Farbe zurück, die wir gefunden haben
+            resolve(dominantColor);
+
+        } catch (e) {
+            console.error("Fehler bei der Farbanalyse (möglicherweise CORS-Problem):", e);
+            resolve(null);
+        }
+    });
+};
 
     const openPlayback = (mediaItems) => {
         if (!mediaItems || mediaItems.length === 0) return;
@@ -774,6 +784,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let element;
         if (item.type.startsWith('image')) {
             element = document.createElement('img');
+
+            /// Diese Zeile verhindert Sicherheitsfehler beim Canvas
+            element.crossOrigin = 'anonymous';
             // Ambilight für Bilder: Farbe einmalig nach dem Laden ermitteln
             element.onload = () => {
                 if (state.playback.isPlaying) {
@@ -783,6 +796,7 @@ document.addEventListener('DOMContentLoaded', () => {
             state.playback.timeout = setTimeout(playNext, 4000);
         } else if (item.type.startsWith('video')) {
             element = document.createElement('video');
+            element.crossOrigin = 'anonymous';
             element.autoplay = true;
             element.onended = playNext;
 
@@ -932,9 +946,52 @@ const handleSaveProject = async () => {
             state.isEditMode ? handleSaveClipChanges() : openProjectModal();
         });
 
-        dom.profileModal.openBtn.addEventListener('click', openProfileModal);
-        dom.profileModal.cancelBtn.addEventListener('click', () => toggleModal(dom.profileModal.modal, false));
-        dom.profileModal.saveBtn.addEventListener('click', saveAndCloseProfileModal);
+        dom.auth.loginBtn.addEventListener('click', () => {
+            toggleModal(dom.auth.modal, true);
+        });
+    
+        dom.auth.logoutBtn.addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            updateUserUI(null);
+            showToast('Erfolgreich ausgeloggt.');
+        });
+    
+        dom.auth.switchBtn.addEventListener('click', () => {
+            state.authMode = state.authMode === 'login' ? 'register' : 'login';
+            updateAuthForm();
+        });
+    
+dom.auth.form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = dom.auth.usernameInput.value;
+    const password = dom.auth.passwordInput.value;
+
+    dom.auth.submitBtn.disabled = true;
+    dom.auth.submitBtn.textContent = 'Wird bearbeitet...';
+
+    // Rufe die Edge Function auf
+    const { data, error } = await supabaseClient.functions.invoke('auth-username', {
+        body: {
+            username: username,
+            password: password,
+            mode: state.authMode // 'login' oder 'register'
+        },
+    });
+
+    if (error || data.error) {
+        showToast(error?.message || data.error);
+    } else {
+        // Setze die Session, die wir von der Funktion zurückbekommen haben
+        await supabaseClient.auth.setSession(data.session);
+        
+        toggleModal(dom.auth.modal, false);
+        updateUserUI(data.user);
+        showToast(state.authMode === 'login' ? 'Erfolgreich eingeloggt.' : 'Konto erfolgreich erstellt!');
+    }
+    
+    dom.auth.submitBtn.disabled = false;
+    updateAuthForm();
+});
 
         dom.mediaPage.addMediaFrame.addEventListener('click', () => dom.mediaPage.mediaUploadInput.click());
 dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
@@ -1082,12 +1139,55 @@ dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
             }
         });
     };
+    
+const checkUser = async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    updateUserUI(session?.user);
+};
+
+// main.js
+
+const updateUserUI = (user) => {
+    // state.currentUser = user; // ALTE ZEILE
+    if (user) {
+        // NEU: Setze den Benutzernamen als state.currentUser
+        state.currentUser = user.user_metadata?.username; 
+        
+        dom.auth.loginBtn.classList.add('hidden');
+        dom.auth.logoutBtn.classList.remove('hidden');
+        dom.auth.userAvatar.classList.remove('hidden');
+        const username = user.user_metadata?.username || 'U';
+        dom.auth.userAvatar.textContent = username.charAt(0).toUpperCase();
+    } else {
+        // NEU: Setze den currentUser zurück auf null
+        state.currentUser = null;
+        
+        dom.auth.loginBtn.classList.remove('hidden');
+        dom.auth.logoutBtn.classList.add('hidden');
+        dom.auth.userAvatar.classList.add('hidden');
+    }
+};
+
+const updateAuthForm = () => {
+    if (state.authMode === 'login') {
+        dom.auth.title.textContent = 'Login';
+        dom.auth.submitBtn.textContent = 'Einloggen';
+        dom.auth.switchText.textContent = 'Noch kein Konto?';
+        dom.auth.switchBtn.textContent = 'Registrieren';
+    } else {
+        dom.auth.title.textContent = 'Registrieren';
+        dom.auth.submitBtn.textContent = 'Konto erstellen';
+        dom.auth.switchText.textContent = 'Bereits ein Konto?';
+        dom.auth.switchBtn.textContent = 'Login';
+    }
+};
+
 
 const init = async () => { // Mache die Funktion async
-    loadUserFromStorage();
     setupEventListeners();
     resetMediaPage();
     
+    await checkUser();
     await loadProjectsFromSupabase(); // Projekte aus Supabase laden
     renderAllProjects(); // Projekte rendern
     
@@ -1160,35 +1260,16 @@ const loadProjectsFromSupabase = async () => {
         counterElement.textContent = `${currentCount}/${state.MAX_FRAMES} Medien`;
     };
 
-    // Profil Modal öffnen
-    const openProfileModal = () => {
-        dom.profileModal.usernameInput.value = state.currentUser === 'Gast' ? '' : state.currentUser;
-        toggleModal(dom.profileModal.modal, true);
-    };
-
-    // Profil speichern und schließen
-    const saveAndCloseProfileModal = () => {
-        const newName = dom.profileModal.usernameInput.value.trim();
-        if (newName) {
-            state.currentUser = newName;
-            localStorage.setItem('walkbyUsername', newName);
-            showToast(`Name gespeichert: ${newName}`);
-        }
-        toggleModal(dom.profileModal.modal, false);
-    };
-
-    // Profil vom speicher öffnen
-    const loadUserFromStorage = () => {
-        const savedName = localStorage.getItem('walkbyUsername');
-        if (savedName) {
-            state.currentUser = savedName;
-        }
-    };
-
     init();
 });
-
 const uploadFileToSupabase = async (file, user) => {
+    // NEU: Sicherheitsprüfung hinzufügen
+    if (!user) {
+        showToast('Du musst angemeldet sein, um Dateien hochzuladen.');
+        console.error('Upload-Versuch ohne angemeldeten Benutzer.');
+        return null;
+    }
+
     // Erstellt einen eindeutigen Dateipfad, um Konflikte zu vermeiden
     const filePath = `${user}/${Date.now()}-${file.name}`;
 

@@ -37,15 +37,11 @@
                             Kunst.</p>
                     </div>
                 </div>
-                <button id="profile-settings-btn"
-                    class="w-12 h-12 bg-gray-200 text-gray-700 flex items-center justify-center rounded-full shadow-md hover:bg-gray-300 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                </button>
+                <div id="user-profile-display" class="flex items-center gap-4">
+                    <button id="login-btn" class="px-4 py-2 text-sm font-semibold text-white bg-[var(--brand-orange)] rounded-lg shadow-md hover:bg-[var(--brand-orange-dark)] transition-colors">Login</button>
+                    <div id="user-avatar" class="hidden w-12 h-12 bg-red-500 text-white flex items-center justify-center rounded-full text-xl font-bold cursor-pointer"></div>
+                    <button id="logout-btn" class="hidden px-4 py-2 text-sm font-semibold text-white bg-gray-500 rounded-lg shadow-md hover:bg-gray-600 transition-colors">Logout</button>
+                </div>
             </div>
         </header>
 
@@ -223,6 +219,28 @@
             </div>
         </div>
     </div>
+    
+    <div id="auth-modal" class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 space-y-4">
+        <h3 id="auth-modal-title" class="text-xl font-bold text-gray-800 text-center">Login</h3>
+        <form id="auth-form" class="space-y-4">
+            <div>
+                <label for="auth-username" class="block text-sm font-medium text-gray-700">Benutzername</label>
+                <input type="text" id="auth-username" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+            </div>
+            <div>
+                <label for="auth-password" class="block text-sm font-medium text-gray-700">Passwort</label>
+                <input type="password" id="auth-password" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+            </div>
+            <button type="submit" id="auth-submit-btn" class="w-full py-2 px-4 text-sm font-medium text-white bg-[var(--brand-orange)] rounded-lg hover:bg-[var(--brand-orange-dark)]">Einloggen</button>
+        </form>
+        <p class="text-center text-sm">
+            <span id="auth-switch-text">Noch kein Konto?</span>
+            <button id="auth-switch-btn" class="font-semibold text-[var(--brand-orange)] hover:underline">Registrieren</button>
+        </p>
+    </div>
+</div>
+
 
     <! --  Wiedergabe Modal -->
     <div id="playback-modal"
@@ -268,19 +286,13 @@
         <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 space-y-4">
             <h3 class="text-xl font-bold text-gray-800">Dein Profil</h3>
             <div>
-                <label for="username-input" class="block text-sm font-medium text-gray-700">Dein Autorenname</label>
-                <input type="text" id="username-input"
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
-                    placeholder="z.B. Alex P.">
-            </div>
-            <div class="flex justify-end gap-4 pt-4 border-t">
-                <button id="cancel-profile-changes"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Abbrechen</button>
-                <button id="save-profile-changes"
-                    class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-[var(--brand-orange)] rounded-lg hover:bg-[var(--brand-orange-dark)]">Speichern</button>
-            </div>
-        </div>
-    </div>
+    <label for="auth-username" class="block text-sm font-medium text-gray-700">Benutzername</label>
+    <input type="text" id="auth-username" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+</div>
+<div>
+    <label for="auth-password" class="block text-sm font-medium text-gray-700">Passwort</label>
+    <input type="password" id="auth-password" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+</div>
 
     <! --  Karte leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
