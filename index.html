@@ -211,12 +211,17 @@
                 </p>
             </div>
 
-            <div class="flex justify-end gap-4 pt-4 border-t">
-                <button id="cancel-create-project"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Abbrechen</button>
-                <button id="confirm-create-project"
-                    class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-[var(--brand-orange)] rounded-lg hover:bg-[var(--brand-orange-dark)] disabled:bg-gray-400">Speichern</button>
-            </div>
+           <div class="flex justify-end gap-4 pt-4 border-t">
+    
+    <button id="cancel-create-project" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Abbrechen</button>
+    
+    <button id="modal-back-btn" type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 hidden">Zurück</button>
+
+    <button id="modal-next-btn" type="button" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-[var(--brand-orange)] rounded-lg hover:bg-[var(--brand-orange-dark)]">Weiter</button>
+
+    <button id="confirm-create-project" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-[var(--brand-orange)] rounded-lg hover:bg-[var(--brand-orange-dark)] hidden">Speichern</button>
+    
+</div>
         </div>
     </div>
     
@@ -281,17 +286,28 @@
 
 
     <! --  Profil Anzeige/Eingabe -->
-    <div id="profile-modal"
-        class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 space-y-4">
+    <div id="profile-modal" class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 space-y-4">
+        <div class="flex justify-between items-center">
             <h3 class="text-xl font-bold text-gray-800">Dein Profil</h3>
-            <div>
-    <label for="auth-username" class="block text-sm font-medium text-gray-700">Benutzername</label>
-    <input type="text" id="auth-username" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
-</div>
-<div>
-    <label for="auth-password" class="block text-sm font-medium text-gray-700">Passwort</label>
-    <input type="password" id="auth-password" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+            <button id="profile-modal-close" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+        </div>
+        
+        <div class="flex flex-col items-center gap-4">
+            <h4 id="profile-username" class="text-lg font-semibold text-gray-700"></h4>
+            <img id="profile-image-preview" src="https://placehold.co/128x128/e0e0e0/777?text=Avatar" alt="Profilbild Vorschau" class="w-32 h-32 rounded-full object-cover bg-gray-200">
+            
+            <input type="file" id="avatar-upload-input" class="hidden" accept="image/png, image/jpeg">
+            <button id="avatar-upload-btn" class="w-full py-2 px-4 text-sm font-medium text-white bg-[var(--brand-orange)] rounded-lg hover:bg-[var(--brand-orange-dark)]">
+                Bild auswählen...
+            </button>
+
+            <button id="avatar-delete-btn" class="text-sm text-red-600 hover:underline">
+                Avatar entfernen
+            </button>
+        </div>
+        <div id="profile-upload-status" class="text-center text-sm text-gray-500 h-4"></div>
+    </div>
 </div>
 
     <! --  Karte leaflet -->

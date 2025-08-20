@@ -48,10 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
             id: document.getElementById('project-id'),
             projectTitle: document.getElementById('project-title'),
             description: document.getElementById('project-description'),
-            // ==== JS MODIFICATION ====
             modeContainer: document.getElementById('project-mode-container'),
             modeValue: document.getElementById('project-mode-value'),
-            // ==== END JS MODIFICATION ====
             locationInput: document.getElementById('project-location-input'),
             mapElement: document.getElementById('modal-map'),
             tabDetails: document.getElementById('modal-tab-details'),
@@ -62,6 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
             useMyLocationBtn: document.getElementById('use-my-location-btn'),
             cancelBtn: document.getElementById('cancel-create-project'),
             confirmBtn: document.getElementById('confirm-create-project'),
+            nextBtn: document.getElementById('modal-next-btn'),
+            backBtn: document.getElementById('modal-back-btn'),
         },
         playbackModal: {
             modal: document.getElementById('playback-modal'),
@@ -86,13 +86,24 @@ document.addEventListener('DOMContentLoaded', () => {
             loginBtn: document.getElementById('login-btn'),
             logoutBtn: document.getElementById('logout-btn'),
             userAvatar: document.getElementById('user-avatar'),
-        }
+        },
+
+    profileModal: {
+    modal: document.getElementById('profile-modal'),
+    closeBtn: document.getElementById('profile-modal-close'),
+    imagePreview: document.getElementById('profile-image-preview'),
+    usernameDisplay: document.getElementById('profile-username'),
+    uploadInput: document.getElementById('avatar-upload-input'),
+    uploadBtn: document.getElementById('avatar-upload-btn'),
+    deleteBtn: document.getElementById('avatar-delete-btn'),
+    statusText: document.getElementById('profile-upload-status'),
+}
 
     };
 
     const state = {
         activePage: 'media-page',
-        currentUser: null,
+        currentUser: {name: null, avatar: null},
         allProjects: [],
         currentMediaClips: [],
         isEditMode: false,
@@ -229,6 +240,96 @@ document.addEventListener('DOMContentLoaded', () => {
         updateMediaCounter();
     };
 
+    const getColorForUser = (username) => {
+    if (!username) return '#808080'; // Standard-Grau, falls kein Name vorhanden ist
+
+    let hash = 0;
+    for (let i = 0; i < username.length; i++) {
+        hash = username.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    const hue = hash % 360; // Eine Farbe auf dem 360°-Farbkreis
+    // Wir halten Sättigung und Helligkeit konstant für schöne, kräftige Farben
+    return `hsl(${hue}, 70%, 45%)`; 
+};
+
+const uploadFileToSupabase = async (file, user) => {
+    // NEU: Sicherheitsprüfung hinzufügen
+    if (!user) {
+        showToast('Du musst angemeldet sein, um Dateien hochzuladen.');
+        console.error('Upload-Versuch ohne angemeldeten Benutzer.');
+        return null;
+    }
+
+    // Erstellt einen eindeutigen Dateipfad, um Konflikte zu vermeiden
+    const filePath = `${user}/${Date.now()}-${file.name}`;
+
+    const { data, error } = await supabaseClient.storage
+        .from('media-clips') // Name deines Buckets
+        .upload(filePath, file);
+
+    if (error) {
+        console.error('Fehler beim Upload:', error);
+        return null;
+    }
+
+    // Holt die öffentliche URL der gerade hochgeladenen Datei
+    const { data: urlData } = supabaseClient.storage
+        .from('media-clips')
+        .getPublicUrl(data.path);
+
+    return {
+        path: data.path, // Der interne Pfad zum Speichern in der DB
+        publicUrl: urlData.publicUrl // Die URL zum Anzeigen
+    };
+};
+const handleAvatarUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const { data: { user } } = await supabaseClient.auth.getUser(); 
+    if (!user) return showToast('Du musst angemeldet sein.');
+
+    dom.profileModal.statusText.textContent = 'Lade hoch...';
+
+    // 1. Datei in den 'avatars' Bucket hochladen
+    const filePath = `${user.id}/${Date.now()}-${file.name}`;
+    const { error: uploadError } = await supabaseClient.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+        dom.profileModal.statusText.textContent = 'Upload fehlgeschlagen.';
+        return console.error('Upload-Fehler:', uploadError);
+    }
+
+// KORRIGIERTER BLOCK
+// 2. Öffentliche URL der Datei holen
+const { data: urlData, error: urlError } = supabaseClient.storage
+    .from('avatars')
+    .getPublicUrl(filePath);
+
+if (urlError) {
+    dom.profileModal.statusText.textContent = 'URL konnte nicht geholt werden.';
+    return console.error('URL-Fehler:', urlError);
+}
+
+// 3. URL in den Metadaten des Nutzers speichern
+const { error: updateUserError } = await supabaseClient.auth.updateUser({
+    data: { avatar_url: urlData.publicUrl } // <-- Korrektur hier
+});
+
+    if (updateUserError) {
+        dom.profileModal.statusText.textContent = 'Profil konnte nicht aktualisiert werden.';
+        return console.error('Update-Fehler:', updateUserError);
+    }
+
+    // 4. UI aktualisieren und Modal schließen
+    dom.profileModal.statusText.textContent = 'Upload erfolgreich!';
+    await checkUser(); // Aktualisiert die UI mit dem neuen Bild
+    setTimeout(() => toggleModal(dom.profileModal.modal, false), 1000);
+};
+
     const createPerforations = (container) => {
         if (!container) return;
         container.innerHTML = '';
@@ -287,8 +388,16 @@ document.addEventListener('DOMContentLoaded', () => {
             previewHtml = `<div class="p-2 text-center flex items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.09.21zM16.383 3.076A1 1 0 0117 4v12a1 1 0 01-1.707.707l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.09.21z" clip-rule="evenodd" /></svg></div>`;
         }
 
-        // Autoren-Label hinzufügen, wenn ein Autor vorhanden ist
-        const authorHtml = clip.author ? `<div class="author-tag" title="Erstellt von ${clip.author}">${clip.author.charAt(0).toUpperCase()}</div>` : '';
+// Autoren-Label hinzufügen, wenn ein Autor vorhanden ist
+let authorHtml = '';
+if (clip.author) {
+    // PRÜFUNG: Zeige das Avatar-Bild des aktuellen Nutzers, wenn es passt.
+    if (clip.author === state.currentUser.name && state.currentUser.avatar) {
+        authorHtml = `<img src="${state.currentUser.avatar}" class="author-tag is-avatar" title="Erstellt von ${clip.author}">`;
+    } else {
+        // FALLBACK: Zeige Initialen für andere Nutzer oder wenn kein Avatar da ist.
+    }
+}
 
         frame.innerHTML = `
         <div class="w-full h-full relative">
@@ -615,26 +724,35 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleModal(dom.projectModal.modal, true);
     };
 
-    const switchModalTab = (tabName) => {
-        const isDetails = tabName === 'details';
-        dom.projectModal.tabDetails.classList.toggle('active', isDetails);
-        dom.projectModal.tabLocation.classList.toggle('active', !isDetails);
-        dom.projectModal.contentDetails.classList.toggle('hidden', !isDetails);
-        dom.projectModal.contentLocation.classList.toggle('hidden', isDetails);
+   // in main.js
+const switchModalTab = (tabName) => {
+    const isDetails = tabName === 'details';
 
-        if (!isDetails) {
-            if (!state.maps.modal) {
-                state.maps.modal = initMap(dom.projectModal.mapElement, { center: [53.55, 9.99], zoom: 12 });
-                state.maps.modal.on('click', (e) => updateModalPin(e.latlng, true));
-            }
-            setTimeout(() => {
-                state.maps.modal.invalidateSize();
-                if (state.maps.currentPinLocation) {
-                    updateModalPin(state.maps.currentPinLocation);
-                }
-            }, 10);
+    // Tab-Buttons und Inhalte umschalten (wie bisher)
+    dom.projectModal.tabDetails.classList.toggle('active', isDetails);
+    dom.projectModal.tabLocation.classList.toggle('active', !isDetails);
+    dom.projectModal.contentDetails.classList.toggle('hidden', !isDetails);
+    dom.projectModal.contentLocation.classList.toggle('hidden', isDetails);
+
+    // NEU: Sichtbarkeit der Navigations-Buttons steuern
+    dom.projectModal.nextBtn.classList.toggle('hidden', !isDetails);   // Zeige "Weiter" nur bei Details
+    dom.projectModal.backBtn.classList.toggle('hidden', isDetails);    // Zeige "Zurück" nur bei Ort
+    dom.projectModal.confirmBtn.classList.toggle('hidden', isDetails); // Zeige "Speichern" nur bei Ort
+
+    // Kartenlogik
+    if (!isDetails) {
+        if (!state.maps.modal) {
+            state.maps.modal = initMap(dom.projectModal.mapElement, { center: [53.55, 9.99], zoom: 12 });
+            state.maps.modal.on('click', (e) => updateModalPin(e.latlng, true));
         }
-    };
+        setTimeout(() => {
+            state.maps.modal.invalidateSize();
+            if (state.maps.currentPinLocation) {
+                updateModalPin(state.maps.currentPinLocation);
+            }
+        }, 10);
+    }
+};
 
     const updateModalPin = (latlng, fromClick = false) => {
         state.maps.currentPinLocation = { lat: latlng.lat, lng: latlng.lng };
@@ -858,7 +976,10 @@ const getDominantColor = (mediaElement) => {
 
 const handleSaveProject = async () => {
     const title = dom.projectModal.projectTitle.value.trim();
-    if (!title) return alert("Bitte gib einen Projekttitel an.");
+    if (!title) return showToast("Bitte gib einen Projekttitel an.");
+
+    const location = dom.projectModal.locationInput.value.trim();
+    if (!location) return showToast("Bitte wähle einen Ort aus");
 
     const editingId = dom.projectModal.id.value ? parseInt(dom.projectModal.id.value) : null;
 
@@ -869,7 +990,7 @@ const handleSaveProject = async () => {
         mode: dom.projectModal.modeValue.value,
         location: state.maps.currentPinLocation,
         address: dom.projectModal.locationInput.value,
-        created_by: state.currentUser
+        created_by: state.currentUser.name
     };
 
     if (editingId) {
@@ -1010,14 +1131,14 @@ dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
     showToast('Lade Medien hoch...');
 
     const newClipsPromises = files.slice(0, availableSlots).map(async (file) => {
-        const uploadResult = await uploadFileToSupabase(file, state.currentUser);
+        const uploadResult = await uploadFileToSupabase(file, state.currentUser.name);
         if (uploadResult) {
             return {
                 id: Date.now() + Math.random(), // Temporäre Client-ID
                 src: uploadResult.publicUrl,    // Öffentliche URL für die Vorschau
                 path: uploadResult.path,        // Interner Pfad für die DB
                 type: file.type,
-                author: state.currentUser,
+                author: state.currentUser.name,
             };
         }
         return null;
@@ -1076,8 +1197,9 @@ dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
         dom.projectModal.confirmBtn.addEventListener('click', handleSaveProject);
         dom.projectModal.tabDetails.addEventListener('click', () => switchModalTab('details'));
         dom.projectModal.tabLocation.addEventListener('click', () => switchModalTab('location'));
+        dom.projectModal.nextBtn.addEventListener('click', () => switchModalTab('location'));
+        dom.projectModal.backBtn.addEventListener('click', () => switchModalTab('details'));
 
-        // ==== JS MODIFICATION: Event Listener for new buttons ====
         dom.projectModal.modeContainer.addEventListener('click', (e) => {
             const selectedButton = e.target.closest('.mode-selector-btn');
             if (selectedButton) {
@@ -1085,7 +1207,6 @@ dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
                 updateModeSelection(mode);
             }
         });
-        // ==== END JS MODIFICATION ====
 
         dom.projectModal.searchLocationBtn.addEventListener('click', async () => {
             const query = dom.projectModal.locationInput.value;
@@ -1138,6 +1259,23 @@ dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
                 if (mediaElement) mediaElement.pause();
             }
         });
+
+dom.auth.userAvatar.addEventListener('click', async () => { // <-- Funktion async machen
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return; // Nur für eingeloggte Nutzer
+    
+    const avatarUrl = user.user_metadata?.avatar_url;
+    dom.profileModal.usernameDisplay.textContent = state.currentUser.name || 'Benutzer';
+    dom.profileModal.imagePreview.src = avatarUrl || 'https://placehold.co/128x128/e0e0e0/777?text=Avatar';
+    dom.profileModal.statusText.textContent = '';
+    toggleModal(dom.profileModal.modal, true);
+});
+
+dom.profileModal.closeBtn.addEventListener('click', () => toggleModal(dom.profileModal.modal, false));
+dom.profileModal.uploadBtn.addEventListener('click', () => dom.profileModal.uploadInput.click());
+dom.profileModal.uploadInput.addEventListener('change', handleAvatarUpload);
+dom.profileModal.deleteBtn.addEventListener('click', handleAvatarDelete); 
+
     };
     
 const checkUser = async () => {
@@ -1145,39 +1283,34 @@ const checkUser = async () => {
     updateUserUI(session?.user);
 };
 
-// main.js
-
 const updateUserUI = (user) => {
     if (user) {
-        // NEU: Setze den Benutzernamen als state.currentUser
-        state.currentUser = user.user_metadata?.username; 
-        
+        state.currentUser.name = user.user_metadata?.username;
+        state.currentUser.avatar = user.user_metadata?.avatar_url;
+
+        dom.auth.userAvatar.title = state.currentUser.name;
+
         dom.auth.loginBtn.classList.add('hidden');
         dom.auth.logoutBtn.classList.remove('hidden');
         dom.auth.userAvatar.classList.remove('hidden');
-        const username = user.user_metadata?.username || 'U';
-        dom.auth.userAvatar.textContent = username.charAt(0).toUpperCase();
+
+        // Logik: Zeige Bild ODER Initialen
+        if (state.currentUser.avatar) {
+            dom.auth.userAvatar.innerHTML = `<img src="${state.currentUser.avatar}" alt="Avatar" class="w-full h-full object-cover rounded-full">`;
+            dom.auth.userAvatar.style.backgroundColor = 'transparent';
+        } else {
+            dom.auth.userAvatar.innerHTML = ''; // Leert evtl. altes Bild
+            const username = state.currentUser.name || 'U';
+            dom.auth.userAvatar.textContent = username.substring(0, 2).toUpperCase();
+            dom.auth.userAvatar.style.backgroundColor = getColorForUser(username);
+        }
     } else {
-        // NEU: Setze den currentUser zurück auf null
-        state.currentUser = null;
-        
+        state.currentUser = { name: null, avatar: null };
+
+        dom.auth.userAvatar.title = '';
         dom.auth.loginBtn.classList.remove('hidden');
         dom.auth.logoutBtn.classList.add('hidden');
         dom.auth.userAvatar.classList.add('hidden');
-    }
-};
-
-const updateAuthForm = () => {
-    if (state.authMode === 'login') {
-        dom.auth.title.textContent = 'Login';
-        dom.auth.submitBtn.textContent = 'Einloggen';
-        dom.auth.switchText.textContent = 'Noch kein Konto?';
-        dom.auth.switchBtn.textContent = 'Registrieren';
-    } else {
-        dom.auth.title.textContent = 'Registrieren';
-        dom.auth.submitBtn.textContent = 'Konto erstellen';
-        dom.auth.switchText.textContent = 'Bereits ein Konto?';
-        dom.auth.switchBtn.textContent = 'Login';
     }
 };
 
@@ -1253,6 +1386,25 @@ const loadProjectsFromSupabase = async () => {
     });
 };
 
+const handleAvatarDelete = async () => {
+    if (!confirm('Möchten Sie Ihr Profilbild wirklich entfernen?')) return;
+
+    // Setze die avatar_url in den Metadaten des Nutzers auf null
+    const { error } = await supabaseClient.auth.updateUser({
+        data: { avatar_url: null }
+    });
+
+    if (error) {
+        showToast('Avatar konnte nicht entfernt werden.');
+        return console.error('Fehler beim Löschen des Avatars:', error);
+    }
+
+    // UI aktualisieren, Erfolgsmeldung anzeigen und Modal schließen
+    await checkUser();
+    showToast('Avatar erfolgreich entfernt.');
+    toggleModal(dom.profileModal.modal, false);
+};
+
     // Medien Zähler
     const updateMediaCounter = () => {
         const counterElement = document.getElementById('media-counter');
@@ -1262,33 +1414,3 @@ const loadProjectsFromSupabase = async () => {
 
     init();
 });
-const uploadFileToSupabase = async (file, user) => {
-    // NEU: Sicherheitsprüfung hinzufügen
-    if (!user) {
-        showToast('Du musst angemeldet sein, um Dateien hochzuladen.');
-        console.error('Upload-Versuch ohne angemeldeten Benutzer.');
-        return null;
-    }
-
-    // Erstellt einen eindeutigen Dateipfad, um Konflikte zu vermeiden
-    const filePath = `${user}/${Date.now()}-${file.name}`;
-
-    const { data, error } = await supabaseClient.storage
-        .from('media-clips') // Name deines Buckets
-        .upload(filePath, file);
-
-    if (error) {
-        console.error('Fehler beim Upload:', error);
-        return null;
-    }
-
-    // Holt die öffentliche URL der gerade hochgeladenen Datei
-    const { data: urlData } = supabaseClient.storage
-        .from('media-clips')
-        .getPublicUrl(data.path);
-
-    return {
-        path: data.path, // Der interne Pfad zum Speichern in der DB
-        publicUrl: urlData.publicUrl // Die URL zum Anzeigen
-    };
-};
