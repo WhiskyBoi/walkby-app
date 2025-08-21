@@ -272,7 +272,6 @@ button:disabled {
 /* User Location Icon */
 .user-location-icon {
     background-color: #1e90ff;
-    /* kräftiges Blau */
     border-radius: 50%;
     width: 16px;
     height: 16px;
