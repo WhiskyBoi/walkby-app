@@ -117,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ambilightInterval: null
         },
         maps: {
-            //main: null,
             modal: null,
             modalMarker: null,
             projectMarkers: [],
@@ -519,7 +518,6 @@ if (clip.author) {
                 state.allProjects = state.allProjects.filter(p => p.id !== project.id);
                 renderAllProjects();
                 showToast("Projekt gelöscht.");
-                saveProjectsToStorage();
             }
         });
 
@@ -535,7 +533,6 @@ if (clip.author) {
         dom.mediaPage.actionBtn.textContent = 'Änderungen speichern';
         renderMediaClips();
         switchPage('media-page');
-        saveProjectsToStorage()
     };
 
     // Änderungen speichern
@@ -552,7 +549,6 @@ if (clip.author) {
         showToast("Änderungen gespeichert!");
         renderAllProjects();
         switchPage('projects-page');
-        saveProjectsToStorage()
     };
 
     // Karte initialisieren
@@ -936,7 +932,6 @@ const getDominantColor = (mediaElement) => {
 
         if (element) {
             element.src = item.src;
-            //element.className = 'max-w-[95%] max-h-[95%] object-contain animate-fade-in rounded-lg shadow-2xl';
             element.className = 'max-w-full max-h-full object-contain animate-fade-in rounded-lg shadow-2xl';
             if (!item.type.startsWith('audio')) container.appendChild(element);
             if (state.playback.isPlaying && (element.play || item.type.startsWith('audio'))) element.play().catch(() => { });
@@ -967,11 +962,6 @@ const getDominantColor = (mediaElement) => {
         dom.playbackModal.progressDots.innerHTML = state.playback.items.map((_, i) =>
             `<div class="w-2 h-2 rounded-full ${i === state.playback.currentIndex ? 'bg-[var(--brand-orange)]' : 'bg-gray-400'}"></div>`
         ).join('');
-    };
-
-    // Eine Hilfsfunktion zum Speichern
-    const saveProjectsToStorage = () => {
-        localStorage.setItem('walkbyProjects', JSON.stringify(state.allProjects));
     };
 
 const handleSaveProject = async () => {
@@ -1046,6 +1036,20 @@ const handleSaveProject = async () => {
     renderAllProjects();
     toggleModal(dom.projectModal.modal, false);
     switchPage('projects-page');
+};
+
+const updateAuthForm = () => {
+    const isLogin = state.authMode === 'login';
+
+    // Titel des Modals aktualisieren
+    dom.auth.title.textContent = isLogin ? 'Login' : 'Registrieren';
+
+    // Text des Hauptbuttons aktualisieren
+    dom.auth.submitBtn.textContent = isLogin ? 'Einloggen' : 'Konto erstellen';
+
+    // Text und Button zum Wechseln aktualisieren
+    dom.auth.switchText.textContent = isLogin ? 'Noch kein Konto?' : 'Bereits ein Konto?';
+    dom.auth.switchBtn.textContent = isLogin ? 'Registrieren' : 'Einloggen';
 };
 
     const setupEventListeners = () => {
