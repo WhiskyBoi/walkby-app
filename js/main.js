@@ -394,7 +394,10 @@ if (clip.author) {
     if (clip.author === state.currentUser.name && state.currentUser.avatar) {
         authorHtml = `<img src="${state.currentUser.avatar}" class="author-tag is-avatar" title="Erstellt von ${clip.author}">`;
     } else {
-        // FALLBACK: Zeige Initialen für andere Nutzer oder wenn kein Avatar da ist.
+        // FALLBACK: Zeige Initialen für andere Nutzer oder wenn kein Avatar da ist
+        const initials = clip.author.substring(0, 2).toUpperCase();
+        const color = getColorForUser(clip.author);
+        authorHtml = `<div class="author-tag" style="background-color: ${color};" title="Erstellt von ${clip.author}">${initials}</div>`;
     }
 }
 
