@@ -516,11 +516,34 @@ if (clip.author) {
         }
         card.querySelector('[data-action="edit-info"]').addEventListener('click', () => openProjectModal(project));
         card.querySelector('[data-action="edit-clips"]').addEventListener('click', () => handleEditClips(project));
-        card.querySelector('[data-action="delete"]').addEventListener('click', () => {
+        card.querySelector('[data-action="delete"]').addEventListener('click', async () => {
             if (confirm(`Möchtest du das Projekt "${project.title}" wirklich löschen?`)) {
+                 // Projekt aus der Supabase-Datenbank löschen
+                const { error } = await supabaseClient
+                    .from('projects')
+                    .delete()
+                    .eq('id', project.id);
+
+                // Prüfen, ob beim Löschen ein Fehler aufgetreten ist
+                if (error) {
+                    console.error('Fehler beim Löschen des Projekts:', error);
+                    showToast('Projekt konnte nicht gelöscht werden.');
+                    return; // Abbrechen, wenn ein Fehler auftritt
+                }
+
+                       // 2. NEU: Marker von der Karte entfernen
+                if (state.maps.main) {
+                    const markerIndex = state.maps.projectMarkers.findIndex(m => m.projectId === project.id);
+                    if (markerIndex > -1) {
+                        state.maps.projectMarkers[markerIndex].marker.remove(); // Vom Leaflet Layer entfernen
+                        state.maps.projectMarkers.splice(markerIndex, 1);       // Aus dem state-Array entfernen
+                    }
+                }
+
+                // Lokalen Zustand aktualisieren und UI neu rendern
                 state.allProjects = state.allProjects.filter(p => p.id !== project.id);
                 renderAllProjects();
-                showToast("Projekt gelöscht.");
+                showToast("Projekt endgültig gelöscht.");
             }
         });
 
@@ -598,7 +621,8 @@ if (clip.author) {
 
     const renderProjectMarkers = () => {
         if (!state.maps.main) return;
-        state.maps.projectMarkers.forEach(marker => marker.remove());
+        // Bisherige Marker von der Karte entfernen
+        state.maps.projectMarkers.forEach(markerObj => markerObj.marker.remove());
         state.maps.projectMarkers = [];
 
         const formatDistance = (meters) => {
@@ -680,7 +704,8 @@ if (clip.author) {
     </div>`;
 
             marker.bindPopup(popupContent, { className: 'custom-walkby-popup' });
-            state.maps.projectMarkers.push(marker);
+            // Speichern des Markers als Objekt mit seiner ID
+            state.maps.projectMarkers.push({ projectId: project.id, marker: marker });
         });
     };
 
