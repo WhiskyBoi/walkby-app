@@ -1,6 +1,6 @@
 const supabaseClient = supabase.createClient(
-    'https://bllmfzpmntqhopgwvyhm.supabase.co', // <-- HIER DEINE ECHTE URL EINFÜGEN
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsbG1menBtbnRxaG9wZ3d2eWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNTk5NTcsImV4cCI6MjA3MDgzNTk1N30.cwaUVks55hMCNXw7kkHZ-eaiEElWG4bgVh-I75GFSpo'     // <-- HIER DEINEN ECHTEN ANON KEY EINFÜGEN
+    'https://bllmfzpmntqhopgwvyhm.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsbG1menBtbnRxaG9wZ3d2eWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNTk5NTcsImV4cCI6MjA3MDgzNTk1N30.cwaUVks55hMCNXw7kkHZ-eaiEElWG4bgVh-I75GFSpo' 
 );
 
 const toggleModal = (modal, show) => {
@@ -17,7 +17,7 @@ const showToast = (message) => {
     const toast = document.getElementById('toast-notification');
     toast.textContent = message;
     toast.classList.replace('bottom-[-100px]', 'bottom-10');
-    setTimeout(() => {
+       setTimeout(() => {
         toast.classList.replace('bottom-10', 'bottom-[-100px]');
     }, 2500);
 };

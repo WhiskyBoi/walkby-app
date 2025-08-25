@@ -152,9 +152,7 @@ body {
     transition: all 0.2s ease-in-out;
     display: flex;
     flex-direction: column;
-    /* Sorgt für das vertikale Layout */
     overflow: hidden;
-    /* Verhindert, dass abgerundete Ecken überdeckt werden */
 }
 
 .project-card .content-area {
@@ -310,7 +308,6 @@ button:disabled {
 
 .walkby-marker-icon.marker-collab {
     background-color: #ff1e1e;
-    /* Ein kräftiges Blau */
 }
 
 /* Stil für die Karten-Legende */
