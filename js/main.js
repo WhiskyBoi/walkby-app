@@ -97,7 +97,12 @@ document.addEventListener('DOMContentLoaded', () => {
     uploadBtn: document.getElementById('avatar-upload-btn'),
     deleteBtn: document.getElementById('avatar-delete-btn'),
     statusText: document.getElementById('profile-upload-status'),
-}
+},
+
+ welcomeModal: {
+        modal: document.getElementById('welcome-modal'),
+        closeBtn: document.getElementById('close-welcome-modal'),
+    }
 
     };
 
@@ -1308,11 +1313,32 @@ dom.profileModal.uploadBtn.addEventListener('click', () => dom.profileModal.uplo
 dom.profileModal.uploadInput.addEventListener('change', handleAvatarUpload);
 dom.profileModal.deleteBtn.addEventListener('click', handleAvatarDelete); 
 
+// HINZUGEFÜGT
+dom.welcomeModal.closeBtn.addEventListener('click', () => {
+    localStorage.setItem('hasSeenWelcomeModal', 'true');
+    dom.welcomeModal.modal.classList.remove('visible');
+    setTimeout(() => {
+        dom.welcomeModal.modal.classList.add('hidden');
+    }, 300);
+});
     };
     
 const checkUser = async () => {
     const { data: { session } } = await supabaseClient.auth.getSession();
     updateUserUI(session?.user);
+
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcomeModal');
+    if (!session && !hasSeenWelcome) {
+        setTimeout(() => {
+            // Überprüfen, ob das Element existiert, bevor darauf zugegriffen wird
+            if (dom.welcomeModal.modal) { 
+                dom.welcomeModal.modal.classList.remove('hidden');
+                setTimeout(() => {
+                    dom.welcomeModal.modal.classList.add('visible');
+                }, 10);
+            }
+        }, 500);
+    }
 };
 
 const updateUserUI = (user) => {

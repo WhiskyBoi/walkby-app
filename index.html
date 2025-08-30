@@ -129,6 +129,22 @@
         </nav>
     </div>
 
+        <div id="welcome-modal" class="modal fixed inset-0 bg-black bg-opacity-70 z-[100] flex items-center justify-center hidden opacity-0 p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center relative transform scale-95 transition-all duration-300">
+            <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-amber-300 p-3 rounded-full shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"></path><path d="M13 7h-2v6h2V7zm0 8h-2v2h2v-2z"></path></svg>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mt-8">Willkommen bei WalkBy!</h3>
+            <p class="text-gray-600 mt-2">
+                Erstelle multimediale Geschichten an echten Orten. Lade Bilder oder Videos hoch und teile deine Entdeckungen mit anderen.
+            </p>
+            <p class="text-xs text-gray-400 mt-4">Vielen Dank, dass du unsere App nutzt!</p>
+            <button id="close-welcome-modal" class="mt-6 w-full py-2 px-4 text-sm font-medium text-white bg-[var(--brand-orange)] rounded-lg hover:bg-[var(--brand-orange-dark)]">
+                Los geht's!
+            </button>
+        </div>
+    </div>
+
     <! --  Projekterstellung Modal -->
     <div id="create-project-modal"
         class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
