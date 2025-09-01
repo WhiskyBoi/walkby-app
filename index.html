@@ -38,7 +38,7 @@
                     </div>
                 </div>
                 <div id="user-profile-display" class="flex items-center gap-4">
-                    <button id="login-btn" class="px-4 py-2 text-sm font-semibold text-white bg-[var(--brand-orange)] rounded-lg shadow-md hover:bg-[var(--brand-orange-dark)] transition-colors">Login</button>
+                    <button id="login-btn" class="px-4 py-2 text-sm font-semibold text-white rounded-lg shadow-md transition-colors">Login</button>
                     <div id="user-avatar" class="hidden w-12 h-12 bg-red-500 text-white flex items-center justify-center rounded-full text-xl font-bold cursor-pointer"></div>
                     <button id="logout-btn" class="hidden px-4 py-2 text-sm font-semibold text-white bg-gray-500 rounded-lg shadow-md hover:bg-gray-600 transition-colors">Logout</button>
                 </div>
@@ -60,10 +60,10 @@
                             </div>
                             <div class="film-strip-bottom-perforations h-5 flex items-center justify-around"></div>
                             <div id="add-media-frame"
-                                class="add-frame-item border-2 border-dashed border-[var(--brand-orange)] rounded-lg flex-col items-center justify-center cursor-pointer hidden">
+                                class="add-frame-item border-2 border-dashed rounded-lg flex-col items-center justify-center cursor-pointer hidden">
                                 <input type="file" id="mediaUploadInput" class="hidden" multiple
                                     accept="image/*,video/*,audio/*" />
-                                <div class="text-3xl text-[var(--brand-orange)]">+</div>
+                                <div class="text-3xl">+</div>
                                 <div class="text-xs text-center text-gray-500">Hinzufügen</div>
                             </div>
                         </div>
@@ -88,7 +88,7 @@
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-2xl font-bold text-gray-800">Meine Projekte</h2>
                     <button id="add-new-project-btn"
-                        class="bg-[var(--brand-orange)] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[var(--brand-orange-dark)] transition-colors text-sm font-semibold flex items-center gap-2">
+                        class="text-white px-4 py-2 rounded-lg shadow-md transition-colors text-sm font-semibold flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd"
                                 d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
@@ -105,24 +105,19 @@
         <nav class="floating-nav-container w-auto bg-white/80 backdrop-blur-sm rounded-full shadow-lg p-2 flex gap-2">
             <button id="nav-media" class="floating-nav-item flex flex-col items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
-                    <path
-                        d="M.25 4.5A.25.25 0 000 4.75v14.5c0 .138.112.25.25.25h23.5a.25.25 0 00-.25-.25V4.75a.25.25 0 00-.25-.25H.25zM2.5 18h19a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0021.5 6h-19A1.5 1.5 0 001 7.5v9A1.5 1.5 0 002.5 18zM10 9.5v5l4-2.5-4-2.5z" />
+                  <path fill-rule="evenodd" d="M3.75 3.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4.5a.75.75 0 01-.75-.75v-4.5zM3.75 12.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4.5a.75.75 0 01-.75-.75v-4.5zM12.75 3.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4.5a.75.75 0 01-.75-.75v-4.5zM12.75 12.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4.5a.75.75 0 01-.75-.75v-4.5z" clip-rule="evenodd" />
                 </svg>
                 <span class="nav-label text-xs mt-1">Medien</span>
             </button>
             <button id="nav-map" class="floating-nav-item flex flex-col items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
-                    <path fill-rule="evenodd"
-                        d="M11.54 22.351.07.07a.25.25 0 01.18-.42h23.5a.25.25 0 01.18.42L12.46 22.351a2.25 2.25 0 01-1.88 0l-1.04-1.04zM12 4.5a.75.75 0 01.75.75v3a.75.75 0 01-1.5 0v-3a.75.75 0 01.75-.75zm0 6a.75.75 0 01.75.75v3a.75.75 0 01-1.5 0v-3a.75.75 0 01.75-.75zm0 6a.75.75 0 01.75.75v3a.75.75 0 01-1.5 0v-3a.75.75 0 01.75-.75z"
-                        clip-rule="evenodd" />
+                    <path fill-rule="evenodd" d="M12 2.25c-2.485 0-4.5 2.015-4.5 4.5s4.5 11.25 4.5 11.25s4.5-8.765 4.5-11.25s-2.015-4.5-4.5-4.5zm0 6.75a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clip-rule="evenodd" />
                 </svg>
                 <span class="nav-label text-xs mt-1">Karte</span>
             </button>
             <button id="nav-projects" class="floating-nav-item flex flex-col items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
-                    <path fill-rule="evenodd"
-                        d="M19.5 21a3 3 0 003-3V9a3 3 0 00-3-6h-5.379a.75.75 0 01-.53-.22L7.25 2.251A2.25 2.25 0 005.653 1.5H3a3 3 0 00-3 3v13.5a3 3 0 003 3h16.5zM12 9a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0112 9zm-1.5 3.75a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5h-1.5z"
-                        clip-rule="evenodd" />
+                    <path d="M20 2H4C2.9 2 2 2.9 2 4v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-9 12H9v-2H7v2H5v-4h6v4zm8 0h-2v-4h2v4zM21.1 5.5L20 5l-1.1.5-1.1-.5-1.1.5-1.1-.5-1.1.5-1.1-.5L12 5l-1.1.5L9.8 5l-1.1.5L7.6 5 6.5 5.5 5.4 5l-1.1.5L3.2 5 2.1 5.5.9 4H23.1l-1.1 1.5z"/>
                 </svg>
                 <span class="nav-label text-xs mt-1">Projekte</span>
             </button>
@@ -139,7 +134,7 @@
                 Erstelle multimediale Geschichten an echten Orten. Lade Bilder oder Videos hoch und teile deine Entdeckungen mit anderen.
             </p>
             <p class="text-xs text-gray-400 mt-4">Vielen Dank, dass du unsere App nutzt!</p>
-            <button id="close-welcome-modal" class="mt-6 w-full py-2 px-4 text-sm font-medium text-white bg-[var(--brand-orange)] rounded-lg hover:bg-[var(--brand-orange-dark)]">
+            <button id="close-welcome-modal" class="mt-6 w-full py-2 px-4 text-sm font-medium text-white rounded-lg">
                 Los geht's!
             </button>
         </div>
@@ -213,7 +208,7 @@
                             class="flex-grow border border-gray-300 rounded-md shadow-sm py-2 px-3"
                             placeholder="z.B. Jungfernstieg 1, Hamburg">
                         <button id="location-search-btn"
-                            class="px-3 py-2 text-sm font-medium text-white bg-[var(--brand-orange)] rounded-lg hover:bg-[var(--brand-orange-dark)]">Suchen</button>
+                            class="px-3 py-2 text-sm font-medium text-white rounded-lg">Suchen</button>
                        <button id="use-my-location-btn" title="Meinen Standort verwenden" class="p-2 text-gray-500 hover:text-blue-600">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
@@ -233,9 +228,9 @@
     
     <button id="modal-back-btn" type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 hidden">Zurück</button>
 
-    <button id="modal-next-btn" type="button" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-[var(--brand-orange)] rounded-lg hover:bg-[var(--brand-orange-dark)]">Weiter</button>
+    <button id="modal-next-btn" type="button" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg">Weiter</button>
 
-    <button id="confirm-create-project" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-[var(--brand-orange)] rounded-lg hover:bg-[var(--brand-orange-dark)] hidden">Speichern</button>
+    <button id="confirm-create-project" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg hidden">Speichern</button>
     
 </div>
         </div>
@@ -243,7 +238,8 @@
     
     <! --  Authentifizierung Modal -->
     <div id="auth-modal" class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 space-y-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 space-y-4 relative">
+        <button id="close-auth-modal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
         <h3 id="auth-modal-title" class="text-xl font-bold text-gray-800 text-center">Login</h3>
         <form id="auth-form" class="space-y-4">
             <div>
@@ -254,11 +250,11 @@
                 <label for="auth-password" class="block text-sm font-medium text-gray-700">Passwort</label>
                 <input type="password" id="auth-password" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
             </div>
-            <button type="submit" id="auth-submit-btn" class="w-full py-2 px-4 text-sm font-medium text-white bg-[var(--brand-orange)] rounded-lg hover:bg-[var(--brand-orange-dark)]">Einloggen</button>
+            <button type="submit" id="auth-submit-btn" class="w-full py-2 px-4 text-sm font-medium text-white rounded-lg">Einloggen</button>
         </form>
         <p class="text-center text-sm">
             <span id="auth-switch-text">Noch kein Konto?</span>
-            <button id="auth-switch-btn" class="font-semibold text-[var(--brand-orange)] hover:underline">Registrieren</button>
+            <button id="auth-switch-btn" class="font-semibold hover:underline">Registrieren</button>
         </p>
     </div>
 </div>
@@ -298,7 +294,7 @@
 
     <! --  Toast Benachrichtigung -->
     <div id="toast-notification"
-        class="fixed bottom-[-100px] left-1/2 -translate-x-1/2 bg-gray-800 text-white py-3 px-6 rounded-full shadow-lg transition-all duration-500 ease-in-out z-[100]">
+        class="fixed bottom-[-100px] left-1/2 -translate-x-1.2 -translate-x-1/2 bg-gray-800 text-white py-3 px-6 rounded-full shadow-lg transition-all duration-500 ease-in-out z-[100]">
     </div>
 
 
@@ -315,7 +311,7 @@
             <img id="profile-image-preview" src="https://placehold.co/128x128/e0e0e0/777?text=Avatar" alt="Profilbild Vorschau" class="w-32 h-32 rounded-full object-cover bg-gray-200">
             
             <input type="file" id="avatar-upload-input" class="hidden" accept="image/png, image/jpeg">
-            <button id="avatar-upload-btn" class="w-full py-2 px-4 text-sm font-medium text-white bg-[var(--brand-orange)] rounded-lg hover:bg-[var(--brand-orange-dark)]">
+            <button id="avatar-upload-btn" class="w-full py-2 px-4 text-sm font-medium text-white rounded-lg">
                 Bild auswählen...
             </button>
 

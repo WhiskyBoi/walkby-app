@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
             switchText: document.getElementById('auth-switch-text'),
             loginBtn: document.getElementById('login-btn'),
             logoutBtn: document.getElementById('logout-btn'),
+            closeBtn: document.getElementById('close-auth-modal'),
             userAvatar: document.getElementById('user-avatar'),
         },
 
@@ -593,8 +594,8 @@ if (clip.author) {
             const div = L.DomUtil.create('div', 'map-legend');
             div.innerHTML =
                 '<h4>Legende</h4>' +
-                '<i style="background: var(--brand-orange)"></i> Solo-Projekt<br>' +
-                '<i style="background: #ff1e1e"></i> Collab-Projekt';
+                '<i style="background: var(--secondary-color)"></i> Solo-Projekt<br>' +
+                '<i style="background: var(--accent-color)"></i> Collab-Projekt';
             return div;
         };
         legend.addTo(map);
@@ -874,6 +875,74 @@ const getDominantColor = (mediaElement) => {
     });
 };
 
+const createAudioVisualizer = (audioElement, container) => {
+    const canvas = document.createElement('canvas');
+    container.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+
+    // Nur einen AudioContext pro Wiedergabe-Session erstellen
+    if (!state.playback.audioContext) {
+        state.playback.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    // Alte Verbindung trennen, falls vorhanden
+    if (state.playback.audioSource) {
+        state.playback.audioSource.disconnect();
+    }
+
+    const source = state.playback.audioContext.createMediaElementSource(audioElement);
+    state.playback.audioSource = source; // Quelle für späteres Trennen speichern
+
+    const analyser = state.playback.audioContext.createAnalyser();
+    
+    source.connect(analyser);
+    analyser.connect(state.playback.audioContext.destination);
+    
+    analyser.fftSize = 128;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    
+    const barWidth = (canvas.width / bufferLength) * 1.5;
+    let barHeight;
+    let x = 0;
+
+    const renderFrame = () => {
+        if (!state.playback.isPlaying || audioElement.paused) {
+             return; // Stoppt die Animation, wenn die Wiedergabe pausiert oder beendet wird
+        }
+
+        requestAnimationFrame(renderFrame);
+        x = 0;
+        analyser.getByteFrequencyData(dataArray);
+
+        ctx.fillStyle = "#1A1A1A"; // Dunkler Hintergrund aus der Palette
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i < bufferLength; i++) {
+            barHeight = dataArray[i] * (canvas.height / 200); // Etwas übersteuerter Effekt
+            
+            // Petrol: #1D4A59 -> rgb(29, 74, 89)
+            // Gold: #F2C14E -> rgb(242, 193, 78)
+            const gradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - barHeight);
+            gradient.addColorStop(0, `rgb(29, 74, 89)`);   // Petrol
+            gradient.addColorStop(1, `rgb(242, 193, 78)`); // Gold
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            
+            x += barWidth + 2; // 2px Abstand
+        }
+    };
+    
+    audioElement.onplay = () => {
+        state.playback.audioContext.resume(); // Wichtig für Browser
+        renderFrame();
+    };
+
+    return canvas; // Gibt das Canvas-Element zurück
+};
+
     const openPlayback = (mediaItems) => {
         if (!mediaItems || mediaItems.length === 0) return;
 
@@ -910,7 +979,13 @@ const getDominantColor = (mediaElement) => {
         clearTimeout(state.playback.timeout);
         stopAndResetAmbilight(); // <<< NEU: Stellt sicher, dass alles sauber beendet wird.
 
-        state.playback.isPlaying = false;
+            // NEU: Audio Context explizit schließen
+    if (state.playback.audioContext && state.playback.audioContext.state !== 'closed') {
+        state.playback.audioContext.close();
+    }
+
+        // NEU: Audio-Properties im State zurücksetzen
+        state.playback = { ...state.playback, isPlaying: false, audioContext: null, audioSource: null };
 
         const { modal, filmIntro, mediaContainer } = dom.playbackModal;
         mediaContainer.innerHTML = '';
@@ -924,9 +999,11 @@ const getDominantColor = (mediaElement) => {
         clearTimeout(state.playback.timeout);
         stopAndResetAmbilight(); // Ambilight stoppen & zurücksetzen
 
+        // NEU: Stoppt zuverlässig vorherige Medien
+        dom.playbackModal.mediaContainer.innerHTML = ''; 
+
         const item = state.playback.items[state.playback.currentIndex];
         const container = dom.playbackModal.mediaContainer;
-        container.innerHTML = '';
 
         let element;
         if (item.type.startsWith('image')) {
@@ -958,10 +1035,20 @@ const getDominantColor = (mediaElement) => {
 
         } else if (item.type.startsWith('audio')) {
             element = document.createElement('audio');
-            element.autoplay = true;
-            element.onended = playNext;
-            container.innerHTML = `<div class="text-white text-center p-8"><svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-gray-400 mx-auto" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.09.21z" clip-rule="evenodd" /></svg><p class="mt-4">Audio wird abgespielt...</p></div>`;
-        }
+        element.crossOrigin = 'anonymous';
+        element.autoplay = true;
+        element.onended = playNext;
+        
+        // NEU: Ruft den Audio-Visualizer auf
+        visualElement = createAudioVisualizer(element, container);
+        
+        // NEU: Ambilight reagiert jetzt auf den Visualizer
+        state.playback.ambilightInterval = setInterval(() => {
+             if (element && !element.paused) {
+                  getDominantColor(visualElement).then(color => applyAmbilight(color, 0.5));
+             }
+        }, 750);
+    }
 
         if (element) {
             element.src = item.src;
@@ -1307,6 +1394,7 @@ dom.auth.userAvatar.addEventListener('click', async () => { // <-- Funktion asyn
     dom.profileModal.statusText.textContent = '';
     toggleModal(dom.profileModal.modal, true);
 });
+dom.auth.closeBtn.addEventListener('click', () => toggleModal(dom.auth.modal, false));
 
 dom.profileModal.closeBtn.addEventListener('click', () => toggleModal(dom.profileModal.modal, false));
 dom.profileModal.uploadBtn.addEventListener('click', () => dom.profileModal.uploadInput.click());

@@ -1,4 +1,5 @@
 :root {
+    /* -- BEFORE --
     --primary-color: #32527B;
     --secondary-color: #DAAF5B;
     --tertiary-color: #AD645B;
@@ -6,6 +7,22 @@
     --bg-mid: #EBEBEB;
     --text-dark: #282C34;
     --text-light: #4B5563;
+    */
+
+    /* -- AFTER -- */
+    --primary-color: #1D4A59;   /* Hauptfarbe (Petrol) */
+    --secondary-color: #E57A44; /* Sekundärfarbe (Terrakotta) */
+    --accent-color: #F2C14E;    /* Akzentfarbe (Gold) */
+
+    --text-dark: #1A1A1A;        /* Neutral (Text) */
+    --bg-light: #F4F1ED;         /* Neutral (Hintergrund) */
+    --bg-mid: #EBEBEB;           /* Beibehalten für neutrale UI-Elemente */
+
+    --signal-success: #2ECC71;
+    --signal-error: #E74C3C;
+    --signal-warning: #F39C12;
+
+    --text-light: #4B5563;       /* Beibehalten für weniger wichtigen Text */
 }
 
 html {
@@ -27,7 +44,7 @@ body {
 }
 
 .header-fixed {
-    background-color: var(--bg-mid);
+    background-color: var(--bg-light); /* Hellerer Header für mehr Kontrast */
     border-bottom: 1px solid #DCD5D3;
 }
 
@@ -71,7 +88,7 @@ p {
 .floating-nav-item.active {
     background-color: var(--primary-color);
     color: white;
-    box-shadow: 0 6px 16px rgba(50, 82, 123, 0.4);
+    box-shadow: 0 6px 16px rgba(29, 74, 89, 0.4); /* Schatten angepasst */
     transform: translateY(-12px);
     transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
@@ -146,12 +163,18 @@ p {
     left: 8px;
     right: 8px;
     bottom: 8px;
+    border-color: var(--secondary-color); /* Anpassung */
+}
+
+#add-media-frame .text-3xl {
+    color: var(--secondary-color); /* Anpassung */
 }
 
 .delete-media-btn {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s;
+    background-color: var(--signal-error) !important; /* Wichtig für Sichtbarkeit */
 }
 
 .film-frame-item:hover .delete-media-btn {
@@ -211,8 +234,8 @@ p {
 }
 
 .media-page-action-btn:not(:disabled) {
-    background: var(--primary-color);
-    box-shadow: 0 8px 20px rgba(50, 82, 123, 0.4);
+    background: var(--secondary-color); /* Akzent für Hauptaktion */
+    box-shadow: 0 8px 20px rgba(229, 122, 68, 0.4); /* Schatten angepasst */
     cursor: pointer;
 }
 
@@ -229,25 +252,32 @@ p {
     border-color: var(--primary-color);
 }
 
-/* Auth Buttons */
-#login-btn, #auth-submit-btn, #confirm-create-project, #modal-next-btn, #add-new-project-btn {
-    background-color: var(--primary-color);
+/* Auth & Action Buttons */
+#login-btn, #auth-submit-btn, #confirm-create-project, #modal-next-btn, #add-new-project-btn, #avatar-upload-btn, #close-welcome-modal {
+    background-color: var(--secondary-color);
     color: white;
 }
 
-#login-btn:hover, #auth-submit-btn:hover, #confirm-create-project:hover, #modal-next-btn:hover, #add-new-project-btn:hover {
-    background-color: var(--text-dark);
+#login-btn:hover, #auth-submit-btn:hover, #close-auth-modal:hover, #confirm-create-project:hover, #modal-next-btn:hover, #add-new-project-btn:hover, #avatar-upload-btn:hover, #close-welcome-modal:hover {
+    background-color: var(--accent-color);
+    color: var(--text-dark); /* Besserer Kontrast bei Hover */
 }
 
-#cancel-create-project, #modal-back-btn, #logout-btn, #avatar-upload-btn, .toggle-description-btn {
+#cancel-create-project, #close-auth-modal, #modal-back-btn, #logout-btn, .toggle-description-btn {
     background-color: var(--bg-mid);
     color: var(--text-dark);
 }
 
-#cancel-create-project:hover, #modal-back-btn:hover, #logout-btn:hover, #avatar-upload-btn:hover, .toggle-description-btn:hover {
+#cancel-create-project:hover, #close-auth-modal, #modal-back-btn:hover, #logout-btn:hover, .toggle-description-btn:hover {
     background-color: #DCD5D3;
 }
 
+#auth-switch-btn {
+    color: var(--secondary-color);
+}
+#auth-switch-btn:hover {
+    color: var(--accent-color);
+}
 
 /* --- Stile für Modus-Auswahl --- */
 .mode-selector-btn .inner-dot {
@@ -257,7 +287,7 @@ p {
 
 .mode-selector-btn.active {
     border-color: var(--primary-color) !important;
-    background-color: rgba(50, 82, 123, 0.1);
+    background-color: rgba(29, 74, 89, 0.1);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
@@ -341,7 +371,7 @@ button:disabled {
 }
 
 .walkby-marker-icon.marker-collab {
-    background-color: var(--tertiary-color);
+    background-color: var(--accent-color); /* Tertiärfarbe wird durch Akzent ersetzt */
 }
 
 /* Stil für die Karten-Legende */
@@ -567,4 +597,8 @@ button:disabled {
 
 #welcome-modal.visible > div {
     transform: scale(1);
+}
+
+#playback-progress-dots .bg-\[\:var\(--brand-orange\)\] {
+    background-color: var(--accent-color) !important;
 }
