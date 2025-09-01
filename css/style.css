@@ -1,8 +1,11 @@
 :root {
-    --brand-orange: #f5a700;
-    --brand-orange-dark: #d15400;
-    --header-bg: #fdf6e3;
-    --text-sepia: #654321;
+    --primary-color: #32527B;
+    --secondary-color: #DAAF5B;
+    --tertiary-color: #AD645B;
+    --bg-light: #F6F5F2;
+    --bg-mid: #EBEBEB;
+    --text-dark: #282C34;
+    --text-light: #4B5563;
 }
 
 html {
@@ -11,6 +14,8 @@ html {
 
 body {
     font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
 }
 
 .page.active {
@@ -22,12 +27,20 @@ body {
 }
 
 .header-fixed {
-    background-color: var(--header-bg);
-    border-bottom: 1px solid #eee8d5;
+    background-color: var(--bg-mid);
+    border-bottom: 1px solid #DCD5D3;
 }
 
 .font-playfair {
     font-family: 'Playfair Display', serif;
+}
+
+h1, h2, h3 {
+    color: var(--text-dark);
+}
+
+p {
+    color: var(--text-light);
 }
 
 /* Navigation */
@@ -37,10 +50,12 @@ body {
     left: 50%;
     transform: translateX(-50%);
     z-index: 30;
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .floating-nav-item {
-    background-color: #F0F0F0;
+    background-color: transparent;
     color: #606060;
     width: 64px;
     height: 64px;
@@ -54,9 +69,9 @@ body {
 }
 
 .floating-nav-item.active {
-    background-color: var(--brand-orange);
+    background-color: var(--primary-color);
     color: white;
-    box-shadow: 0 6px 16px rgba(245, 167, 0, 0.4);
+    box-shadow: 0 6px 16px rgba(50, 82, 123, 0.4);
     transform: translateY(-12px);
     transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
@@ -196,8 +211,8 @@ body {
 }
 
 .media-page-action-btn:not(:disabled) {
-    background: linear-gradient(145deg, var(--brand-orange-dark), var(--brand-orange));
-    box-shadow: 0 8px 20px rgba(209, 84, 0, 0.4);
+    background: var(--primary-color);
+    box-shadow: 0 8px 20px rgba(50, 82, 123, 0.4);
     cursor: pointer;
 }
 
@@ -210,9 +225,29 @@ body {
 }
 
 .modal-tab-btn.active {
-    color: var(--brand-orange);
-    border-color: var(--brand-orange);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
 }
+
+/* Auth Buttons */
+#login-btn, #auth-submit-btn, #confirm-create-project, #modal-next-btn, #add-new-project-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+#login-btn:hover, #auth-submit-btn:hover, #confirm-create-project:hover, #modal-next-btn:hover, #add-new-project-btn:hover {
+    background-color: var(--text-dark);
+}
+
+#cancel-create-project, #modal-back-btn, #logout-btn, #avatar-upload-btn, .toggle-description-btn {
+    background-color: var(--bg-mid);
+    color: var(--text-dark);
+}
+
+#cancel-create-project:hover, #modal-back-btn:hover, #logout-btn:hover, #avatar-upload-btn:hover, .toggle-description-btn:hover {
+    background-color: #DCD5D3;
+}
+
 
 /* --- Stile für Modus-Auswahl --- */
 .mode-selector-btn .inner-dot {
@@ -221,18 +256,17 @@ body {
 }
 
 .mode-selector-btn.active {
-    border-color: var(--brand-orange) !important;
-    background-color: #FFF8E1;
-    /* Leichter Orangeton */
+    border-color: var(--primary-color) !important;
+    background-color: rgba(50, 82, 123, 0.1);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .mode-selector-btn.active .radio-dot {
-    border-color: var(--brand-orange);
+    border-color: var(--primary-color);
 }
 
 .mode-selector-btn.active .inner-dot {
-    background-color: var(--brand-orange);
+    background-color: var(--primary-color);
 }
 
 /* --- ENDE: Stile für Modus-Auswahl --- */
@@ -269,7 +303,7 @@ button:disabled {
 
 /* User Location Icon */
 .user-location-icon {
-    background-color: #1e90ff;
+    background-color: var(--primary-color);
     border-radius: 50%;
     width: 16px;
     height: 16px;
@@ -285,7 +319,7 @@ button:disabled {
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background-color: rgba(30, 144, 255, 0.5);
+    background-color: var(--primary-color);
     transform: translate(-50%, -50%);
     animation: pulse 1.5s infinite ease-out;
     z-index: -1;
@@ -303,11 +337,11 @@ button:disabled {
 }
 
 .walkby-marker-icon.marker-single {
-    background-color: var(--brand-orange);
+    background-color: var(--secondary-color);
 }
 
 .walkby-marker-icon.marker-collab {
-    background-color: #ff1e1e;
+    background-color: var(--tertiary-color);
 }
 
 /* Stil für die Karten-Legende */
