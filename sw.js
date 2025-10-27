@@ -1,5 +1,5 @@
 // Definiert einen Namen für den Cache
-const CACHE_NAME = 'walkby-app-shell-v1';
+const CACHE_NAME = 'walkby-app-shell-v2';
 
 // Liste der Dateien, die die "App Shell" bilden
 const APP_SHELL_FILES = [

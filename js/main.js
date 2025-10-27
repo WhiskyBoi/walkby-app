@@ -988,15 +988,9 @@ const createAudioVisualizer = (audioElement, container) => {
     };
 
 
-    const closePlayback = () => {
+const closePlayback = () => {
         clearTimeout(state.playback.timeout);
         stopAndResetAmbilight(); // <<< NEU: Stellt sicher, dass alles sauber beendet wird.
-
-         if (previousMedia) {
-        previousMedia.pause();
-        previousMedia.src = '';
-        previousMedia.load();
-    }
 
             // NEU: Audio Context explizit schließen
     if (state.playback.audioContext && state.playback.audioContext.state !== 'closed') {
