@@ -614,11 +614,10 @@ button:disabled {
 
 .popup-btn-collab {
     background-color: var(--accent-color);
-    color: white;
+    color: var(--text-dark);
 }
 .popup-btn-collab:hover {
-    background-color: var(--secondary-color);
-    color: var(--text-dark);
+    opacity: 0.9;
 }
 
 .popup-btn-solo {
