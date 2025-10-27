@@ -715,9 +715,9 @@ if (clip.author) {
             </div>
         </div>
         <div class="px-3 pb-2 pt-2 border-t border-gray-100 flex justify-end items-center">
-            ${project.mode === 'together'
-                    ? `<button class="text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 px-3 py-1.5 rounded-md" onclick="handleJoinProject(${project.id})">Mitmachen!</button>`
-                    : `<button class="text-sm font-bold text-[var(--brand-orange)] hover:text-[var(--brand-orange-dark)]" onclick="viewProjectById(${project.id})">Ansehen</button>`
+      ${project.mode === 'together'
+                    ? `<button class="popup-btn popup-btn-collab" onclick="handleJoinProject(${project.id})">Mitmachen!</button>`
+                    : `<button class="popup-btn popup-btn-solo" onclick="viewProjectById(${project.id})">Ansehen</button>`
                 }
         </div>
     </div>`;

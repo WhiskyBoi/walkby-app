@@ -602,3 +602,29 @@ button:disabled {
 #playback-progress-dots .bg-\[\:var\(--brand-orange\)\] {
     background-color: var(--accent-color) !important;
 }
+
+.popup-btn {
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 700;   /* font-bold */
+    padding: 0.375rem 0.75rem; /* px-3 py-1.5 */
+    border-radius: 0.375rem; /* rounded-md */
+    transition-property: background-color, color, opacity;
+    transition-duration: 0.2s;
+}
+
+.popup-btn-collab {
+    background-color: var(--accent-color);
+    color: var(--text-dark);
+}
+.popup-btn-collab:hover {
+    opacity: 0.9;
+}
+
+.popup-btn-solo {
+    background-color: var(--secondary-color);
+    color: white;
+}
+.popup-btn-solo:hover {
+    background-color: var(--accent-color);
+    color: var(--text-dark);
+}
