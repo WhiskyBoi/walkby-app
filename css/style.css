@@ -617,7 +617,8 @@ button:disabled {
     color: white;
 }
 .popup-btn-collab:hover {
-    opacity: 0.9;
+    background-color: var(--secondary-color);
+    color: var(--text-dark);
 }
 
 .popup-btn-solo {
