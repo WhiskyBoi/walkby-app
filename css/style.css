@@ -614,7 +614,7 @@ button:disabled {
 
 .popup-btn-collab {
     background-color: var(--accent-color);
-    color: var(--text-dark);
+    color: white;
 }
 .popup-btn-collab:hover {
     opacity: 0.9;
