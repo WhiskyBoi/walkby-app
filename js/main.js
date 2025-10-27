@@ -1,3 +1,16 @@
+// Registrierung des Service Workers
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('Service Worker erfolgreich registriert:', registration.scope);
+      })
+      .catch((error) => {
+        console.error('Service Worker Registrierung fehlgeschlagen:', error);
+      });
+  });
+}
+
 const supabaseClient = supabase.createClient(
     'https://bllmfzpmntqhopgwvyhm.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsbG1menBtbnRxaG9wZ3d2eWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNTk5NTcsImV4cCI6MjA3MDgzNTk1N30.cwaUVks55hMCNXw7kkHZ-eaiEElWG4bgVh-I75GFSpo' 
@@ -979,6 +992,12 @@ const createAudioVisualizer = (audioElement, container) => {
         clearTimeout(state.playback.timeout);
         stopAndResetAmbilight(); // <<< NEU: Stellt sicher, dass alles sauber beendet wird.
 
+         if (previousMedia) {
+        previousMedia.pause();
+        previousMedia.src = '';
+        previousMedia.load();
+    }
+
             // NEU: Audio Context explizit schließen
     if (state.playback.audioContext && state.playback.audioContext.state !== 'closed') {
         state.playback.audioContext.close();
@@ -998,6 +1017,11 @@ const createAudioVisualizer = (audioElement, container) => {
     const playCurrentItem = () => {
         clearTimeout(state.playback.timeout);
         stopAndResetAmbilight(); // Ambilight stoppen & zurücksetzen
+
+    if (state.playback.audioContext) {
+        state.playback.audioContext.close();
+        state.playback.audioContext = null;
+    }
 
         // NEU: Stoppt zuverlässig vorherige Medien
         dom.playbackModal.mediaContainer.innerHTML = ''; 
