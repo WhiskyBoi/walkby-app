@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const state = {
         activePage: 'media-page',
-        currentUser: {name: null, avatar: null},
+        currentUser: {id: null, name: null, avatar: null},
         allProjects: [],
         currentMediaClips: [],
         isEditMode: false,
@@ -271,16 +271,16 @@ document.addEventListener('DOMContentLoaded', () => {
     return `hsl(${hue}, 70%, 45%)`; 
 };
 
-const uploadFileToSupabase = async (file, user) => {
+const uploadFileToSupabase = async (file, userId) => {
     // NEU: Sicherheitsprüfung hinzufügen
-    if (!user) {
+    if (!userId) {
         showToast('Du musst angemeldet sein, um Dateien hochzuladen.');
         console.error('Upload-Versuch ohne angemeldeten Benutzer.');
         return null;
     }
 
     // Erstellt einen eindeutigen Dateipfad, um Konflikte zu vermeiden
-    const filePath = `${user}/${Date.now()}-${file.name}`;
+    const filePath = `${userId}/${Date.now()}-${file.name}`;
 
     const { data, error } = await supabaseClient.storage
         .from('media-clips') // Name deines Buckets
@@ -1118,7 +1118,8 @@ const handleSaveProject = async () => {
         mode: dom.projectModal.modeValue.value,
         location: state.maps.currentPinLocation,
         address: dom.projectModal.locationInput.value,
-        created_by: state.currentUser.name
+        user_id: state.currentUser.id,            // (UUID)
+        created_by_name: state.currentUser.name   // (Name als Cache)
     };
 
     if (editingId) {
@@ -1151,7 +1152,8 @@ const handleSaveProject = async () => {
             project_id: newProject.id, // Die ID des gerade erstellten Projekts
             file_path: clip.path,      // Der private Pfad aus dem Storage-Upload
             type: clip.type,
-            author: clip.author,
+            user_id: clip.user_id,          // (UUID)
+            author_name: clip.author_name,  // (Name als Cache)
             sort_order: index          // Reihenfolge speichern
         }));
 
@@ -1273,14 +1275,15 @@ dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
     showToast('Lade Medien hoch...');
 
     const newClipsPromises = files.slice(0, availableSlots).map(async (file) => {
-        const uploadResult = await uploadFileToSupabase(file, state.currentUser.name);
+        const uploadResult = await uploadFileToSupabase(file, state.currentUser.id);
         if (uploadResult) {
             return {
                 id: Date.now() + Math.random(), // Temporäre Client-ID
                 src: uploadResult.publicUrl,    // Öffentliche URL für die Vorschau
                 path: uploadResult.path,        // Interner Pfad für die DB
                 type: file.type,
-                author: state.currentUser.name,
+                author_name: state.currentUser.name, // Name für die Anzeige
+                user_id: state.currentUser.id      // UUID für die DB
             };
         }
         return null;
@@ -1449,6 +1452,7 @@ const checkUser = async () => {
 
 const updateUserUI = (user) => {
     if (user) {
+        state.currentUser.id = user.id;
         state.currentUser.name = user.user_metadata?.username;
         state.currentUser.avatar = user.user_metadata?.avatar_url;
 
@@ -1469,7 +1473,7 @@ const updateUserUI = (user) => {
             dom.auth.userAvatar.style.backgroundColor = getColorForUser(username);
         }
     } else {
-        state.currentUser = { name: null, avatar: null };
+        state.currentUser = { id: null, name: null, avatar: null };
 
         dom.auth.userAvatar.title = '';
         dom.auth.loginBtn.classList.remove('hidden');
@@ -1485,7 +1489,7 @@ const init = async () => { // Mache die Funktion async
     
     await checkUser();
     await loadProjectsFromSupabase(); // Projekte aus Supabase laden
-    renderAllProjects(); // Projekte rendern
+    //renderAllProjects(); // Projekte rendern
     
     switchPage('media-page');
 
@@ -1510,11 +1514,20 @@ const loadProjectsFromSupabase = async () => {
     const { data, error } = await supabaseClient
         .from('projects')
         .select(`
-            *,
+            id,
+            created_at,
+            title,
+            description,
+            mode,
+            location,
+            address,
+            created_by_name,
+            user_id,
             media_clips (
                 file_path,
                 type,
-                author,
+                author_name,
+                user_id,
                 sort_order
             )
         `)
@@ -1522,6 +1535,7 @@ const loadProjectsFromSupabase = async () => {
 
     if (error) {
         console.error("Fehler beim Laden der Projekte:", error);
+        showToast(`Projekte konnten nicht geladen werden: ${error.message}`);
         return;
     }
 
@@ -1533,7 +1547,7 @@ const loadProjectsFromSupabase = async () => {
                 id: clip.file_path, // Eindeutige ID
                 src: supabaseClient.storage.from('media-clips').getPublicUrl(clip.file_path).data.publicUrl,
                 type: clip.type,
-                author: clip.author
+                author: clip.author_name
             }));
 
         return {
@@ -1543,11 +1557,13 @@ const loadProjectsFromSupabase = async () => {
             location: project.location,
             address: project.address,
             mode: project.mode,
-            createdBy: project.created_by,
+            createdBy: project.created_by_name,
             createdAt: project.created_at,
             media: media
         };
     });
+    renderAllProjects(); // <<< DIESE ZEILE HINZUFÜGEN!
+    renderProjectMarkers(); // <<< UND DIESE! (Marker auch neu zeichnen)
 };
 
 const handleAvatarDelete = async () => {
