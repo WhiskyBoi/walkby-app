@@ -1215,10 +1215,22 @@ const updateAuthForm = () => {
             toggleModal(dom.auth.modal, true);
         });
     
+
         dom.auth.logoutBtn.addEventListener('click', async () => {
             await supabaseClient.auth.signOut();
-            updateUserUI(null);
+            updateUserUI(null); // Setzt currentUser auf null
             showToast('Erfolgreich ausgeloggt.');
+
+            // 1. Lokale Projektdaten leeren
+            state.allProjects = [];
+            
+            // 2. Projektliste und Kartenmarker aktualisieren (leeren)
+            renderAllProjects(); 
+            renderProjectMarkers(); // Stellt sicher, dass Marker verschwinden
+
+            // 3. Zur Medienseite wechseln und diese zurücksetzen
+            resetMediaPage();
+            switchPage('media-page');
         });
     
         dom.auth.switchBtn.addEventListener('click', () => {
@@ -1282,7 +1294,7 @@ dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
                 src: uploadResult.publicUrl,    // Öffentliche URL für die Vorschau
                 path: uploadResult.path,        // Interner Pfad für die DB
                 type: file.type,
-                author_name: state.currentUser.name, // Name für die Anzeige
+                author: state.currentUser.name, // Name für die Anzeige
                 user_id: state.currentUser.id      // UUID für die DB
             };
         }
