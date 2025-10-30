@@ -438,14 +438,31 @@ if (clip.author) {
         return frame;
     };
 
-    const renderAllProjects = () => {
+ const renderAllProjects = () => {
         dom.projectsPage.container.innerHTML = '';
-        if (state.allProjects.length === 0) {
-            dom.projectsPage.container.innerHTML = `<p class="text-center text-gray-500">Noch keine Projekte erstellt.</p>`;
+
+        // ANFORDERUNG 1: Prüfen, ob Nutzer eingeloggt ist
+        if (!state.currentUser.id) {
+            dom.projectsPage.container.innerHTML = `<p class="text-center text-gray-500">Bitte einloggen, um deine Projekte zu sehen.</p>`;
+            // Wir beenden die Funktion hier, da nichts gerendert werden soll.
+            // Die Karten-Marker werden separat in loadProjectsFromSupabase gerendert.
             return;
         }
-        state.allProjects.forEach(p => dom.projectsPage.container.appendChild(createProjectCard(p)));
-        renderProjectMarkers();
+
+        // ANFORDERUNG 2: Nur eigene Projekte filtern
+        const myProjects = state.allProjects.filter(p => p.user_id === state.currentUser.id);
+
+        if (myProjects.length === 0) {
+            dom.projectsPage.container.innerHTML = `<p class="text-center text-gray-500">Du hast noch keine eigenen Projekte erstellt.</p>`;
+            return;
+        }
+
+        // Nur die gefilterten Projekte rendern
+        myProjects.forEach(p => dom.projectsPage.container.appendChild(createProjectCard(p)));
+        
+        // WICHTIG: renderProjectMarkers() wird hier entfernt,
+        // da diese Funktion alle Projekte auf der Karte anzeigen soll
+        // und bereits in loadProjectsFromSupabase() aufgerufen wird.
     };
 
 
@@ -581,19 +598,67 @@ if (clip.author) {
     };
 
     // Änderungen speichern
-    const handleSaveClipChanges = () => {
-        const projectIndex = state.allProjects.findIndex(p => p.id === state.currentlyEditingProjectId);
+    const handleSaveClipChanges = async () => {
+        const projectId = state.currentlyEditingProjectId;
+        if (!projectId) return;
+
+        // Funktion ist jetzt async und spricht mit Supabase
+        showToast("Speichere Änderungen...");
+
+        // 1. Alle alten Clips für dieses Projekt löschen
+        const { error: deleteError } = await supabaseClient
+            .from('media_clips')
+            .delete()
+            .eq('project_id', projectId);
+
+        if (deleteError) {
+            console.error('Fehler beim Löschen alter Clips:', deleteError);
+            showToast('Fehler: Änderungen konnten nicht gespeichert werden.');
+            return;
+        }
+
+        // 2. Alle aktuellen Clips als neue Clips einfügen (falls vorhanden)
+        if (state.currentMediaClips.length > 0) {
+            const clipsToInsert = state.currentMediaClips.map((clip, index) => ({
+                project_id: projectId,
+                file_path: clip.path,      // (Wird jetzt dank Änderung 3 mitgeladen)
+                type: clip.type,
+                user_id: clip.user_id,     // (Wird jetzt dank Änderung 3 mitgeladen)
+                author_name: clip.author,    // <--- KORREKTUR (liest von clip.author)
+                sort_order: index
+            }));
+
+            const { error: insertError } = await supabaseClient
+                .from('media_clips')
+                .insert(clipsToInsert);
+
+            if (insertError) {
+                console.error('Fehler beim Einfügen neuer Clips:', insertError);
+                showToast('Fehler: Neue Clips konnten nicht gespeichert werden.');
+                return;
+            }
+        }
+        
+        // 3. Lokalen State (allProjects) aktualisieren (wie bisher)
+        const projectIndex = state.allProjects.findIndex(p => p.id === projectId);
         if (projectIndex > -1) {
+            // Aktualisiere die Medien im lokalen State, um die neuen/geänderten Daten widerzuspiegeln
             state.allProjects[projectIndex].media = state.currentMediaClips;
+            
             if (state.currentMediaClips.length > 0) {
                 state.allProjects[projectIndex].thumbnail = state.currentMediaClips[0].src;
             } else {
                 state.allProjects[projectIndex].thumbnail = 'https://placehold.co/80x80/e0e0e0/333?text=leer';
             }
         }
-        showToast("Änderungen gespeichert!");
-        renderAllProjects();
-        switchPage('projects-page');
+
+        showToast("Änderungen erfolgreich gespeichert!");
+        
+        // Lade alle Projekte und Marker neu, um die Änderungen auf der Karte anzuzeigen
+        await loadProjectsFromSupabase(); 
+        
+        // Wechsle zur Kartenseite
+        switchPage('map-page');
     };
 
     // Karte initialisieren
@@ -715,8 +780,10 @@ if (clip.author) {
             </div>
         </div>
         <div class="px-3 pb-2 pt-2 border-t border-gray-100 flex justify-end items-center">
-      ${project.mode === 'together'
-                    ? `<button class="popup-btn popup-btn-collab" onclick="handleJoinProject(${project.id})">Mitmachen!</button>`
+
+    ${project.mode === 'together'
+                    ? `<button class="popup-btn popup-btn-solo" onclick="viewProjectById(${project.id})">Ansehen</button>
+                       <button class="popup-btn popup-btn-collab" onclick="handleJoinProject(${project.id})">Mitmachen!</button>`
                     : `<button class="popup-btn popup-btn-solo" onclick="viewProjectById(${project.id})">Ansehen</button>`
                 }
         </div>
@@ -1153,7 +1220,7 @@ const handleSaveProject = async () => {
             file_path: clip.path,      // Der private Pfad aus dem Storage-Upload
             type: clip.type,
             user_id: clip.user_id,          // (UUID)
-            author_name: clip.author_name,  // (Name als Cache)
+            author_name: clip.author,
             sort_order: index          // Reihenfolge speichern
         }));
 
@@ -1172,10 +1239,11 @@ const handleSaveProject = async () => {
     }
 
     showToast("Projekt erfolgreich gespeichert!");
-    await loadProjectsFromSupabase(); // Neu laden, um alles anzuzeigen
-    renderAllProjects();
+    await loadProjectsFromSupabase(); // Neu laden, um alles anzuzeigen (updated Projekte & Marker)
     toggleModal(dom.projectModal.modal, false);
-    switchPage('projects-page');
+    
+    // Wechsle direkt zur Kartenseite
+    switchPage('map-page');
 };
 
 const updateAuthForm = () => {
@@ -1216,21 +1284,15 @@ const updateAuthForm = () => {
         });
     
 
-        dom.auth.logoutBtn.addEventListener('click', async () => {
+     dom.auth.logoutBtn.addEventListener('click', async () => {
             await supabaseClient.auth.signOut();
-            updateUserUI(null); // Setzt currentUser auf null
             showToast('Erfolgreich ausgeloggt.');
-
-            // 1. Lokale Projektdaten leeren
-            state.allProjects = [];
             
-            // 2. Projektliste und Kartenmarker aktualisieren (leeren)
-            renderAllProjects(); 
-            renderProjectMarkers(); // Stellt sicher, dass Marker verschwinden
-
-            // 3. Zur Medienseite wechseln und diese zurücksetzen
-            resetMediaPage();
-            switchPage('media-page');
+            // Setze ein Flag für die Seite, die nach dem Neuladen geöffnet werden soll
+            sessionStorage.setItem('openPageAfterReload', 'map-page');
+            
+            // Lade die Seite neu, um den gesamten State zuverlässig zu löschen
+            location.reload();
         });
     
         dom.auth.switchBtn.addEventListener('click', () => {
@@ -1262,8 +1324,18 @@ dom.auth.form.addEventListener('submit', async (e) => {
         await supabaseClient.auth.setSession(data.session);
         
         toggleModal(dom.auth.modal, false);
-        updateUserUI(data.user);
+        updateUserUI(data.user); // UI und state.currentUser aktualisieren
+        
+        // ---- NEUE ANFORDERUNGEN ----
+        // 1. Lade ALLE Projekte neu, jetzt da der Nutzer eingeloggt ist
+        await loadProjectsFromSupabase(); 
+        
+        // 2. Zeige dem Nutzer direkt seine Projektseite
+        // (renderAllProjects wird automatisch von loadProjectsFromSupabase aufgerufen)
+        switchPage('projects-page');
+        
         showToast(state.authMode === 'login' ? 'Erfolgreich eingeloggt.' : 'Konto erfolgreich erstellt!');
+        // ---- ENDE NEUE ANFORDERUNGEN ----
     }
     
     dom.auth.submitBtn.disabled = false;
@@ -1271,7 +1343,7 @@ dom.auth.form.addEventListener('submit', async (e) => {
 });
 
         dom.mediaPage.addMediaFrame.addEventListener('click', () => dom.mediaPage.mediaUploadInput.click());
-dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
+    dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
     const files = Array.from(event.target.files);
     const availableSlots = state.MAX_FRAMES - state.currentMediaClips.length;
 
@@ -1294,7 +1366,7 @@ dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
                 src: uploadResult.publicUrl,    // Öffentliche URL für die Vorschau
                 path: uploadResult.path,        // Interner Pfad für die DB
                 type: file.type,
-                author: state.currentUser.name, // Name für die Anzeige
+                author: state.currentUser.name,
                 user_id: state.currentUser.id      // UUID für die DB
             };
         }
@@ -1501,9 +1573,12 @@ const init = async () => { // Mache die Funktion async
     
     await checkUser();
     await loadProjectsFromSupabase(); // Projekte aus Supabase laden
-    //renderAllProjects(); // Projekte rendern
     
-    switchPage('media-page');
+    // Prüfe, ob eine Seite nach dem Neuladen (z.B. Logout) geöffnet werden soll
+    const openPage = sessionStorage.getItem('openPageAfterReload') || 'media-page';
+    sessionStorage.removeItem('openPageAfterReload'); // Flag direkt wieder löschen
+    
+    switchPage(openPage); // Gehe zur gewünschten Seite
 
     createPerforations(dom.mediaPage.perfTop);
     createPerforations(dom.mediaPage.perfBottom);
@@ -1559,7 +1634,9 @@ const loadProjectsFromSupabase = async () => {
                 id: clip.file_path, // Eindeutige ID
                 src: supabaseClient.storage.from('media-clips').getPublicUrl(clip.file_path).data.publicUrl,
                 type: clip.type,
-                author: clip.author_name
+                author: clip.author_name,
+                path: clip.file_path,
+                user_id: clip.user_id
             }));
 
         return {
@@ -1571,11 +1648,12 @@ const loadProjectsFromSupabase = async () => {
             mode: project.mode,
             createdBy: project.created_by_name,
             createdAt: project.created_at,
-            media: media
+            media: media,
+            user_id: project.user_id
         };
     });
-    renderAllProjects(); // <<< DIESE ZEILE HINZUFÜGEN!
-    renderProjectMarkers(); // <<< UND DIESE! (Marker auch neu zeichnen)
+    renderAllProjects();
+    renderProjectMarkers(); 
 };
 
 const handleAvatarDelete = async () => {
