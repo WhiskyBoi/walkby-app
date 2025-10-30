@@ -1258,7 +1258,7 @@ dom.auth.form.addEventListener('submit', async (e) => {
     updateAuthForm();
 });
 
-dom.mediaPage.addMediaFrame.addEventListener('click', () => dom.mediaPage.mediaUploadInput.click());
+        dom.mediaPage.addMediaFrame.addEventListener('click', () => dom.mediaPage.mediaUploadInput.click());
 dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
     const files = Array.from(event.target.files);
     const availableSlots = state.MAX_FRAMES - state.currentMediaClips.length;
@@ -1271,64 +1271,33 @@ dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
         showToast(message);
     }
 
-    // --- NEUE LOGIK FÜR DATEIGRÖSSE & AUTOREN ---
-    const MAX_IMAGE_AUDIO_SIZE_MB = 10;
-    const MAX_VIDEO_SIZE_MB = 50; // Limit für Videos (in MB)
-    const newClips = [];
-    let sizeLimitExceeded = false;
-    let uploadFailed = false;
-
+    // Zeige einen Lade-Indikator
     showToast('Lade Medien hoch...');
 
-    const filesToUpload = files.slice(0, availableSlots);
-
-    for (const file of filesToUpload) {
-        const fileSizeMB = file.size / 1024 / 1024;
-        let limit = MAX_IMAGE_AUDIO_SIZE_MB;
-
-        if (file.type.startsWith('video')) {
-            limit = MAX_VIDEO_SIZE_MB;
-        }
-
-        // 1. Prüfung der Dateigröße
-        if (fileSizeMB > limit) {
-            console.warn(`Datei ${file.name} ist zu groß (${fileSizeMB.toFixed(1)}MB). Limit: ${limit}MB`);
-            sizeLimitExceeded = true;
-            continue; // Diese Datei überspringen
-        }
-
-        // 2. Versuch, die Datei hochzuladen
+    const newClipsPromises = files.slice(0, availableSlots).map(async (file) => {
         const uploadResult = await uploadFileToSupabase(file, state.currentUser.id);
         if (uploadResult) {
-            newClips.push({
+            return {
                 id: Date.now() + Math.random(), // Temporäre Client-ID
                 src: uploadResult.publicUrl,    // Öffentliche URL für die Vorschau
                 path: uploadResult.path,        // Interner Pfad für die DB
                 type: file.type,
-                author: state.currentUser.name, // KORREKTUR: 'author' statt 'author_name'
+                author_name: state.currentUser.name, // Name für die Anzeige
                 user_id: state.currentUser.id      // UUID für die DB
-            });
-        } else {
-            uploadFailed = true;
+            };
         }
-    }
+        return null;
+    });
 
-    // 3. Feedback an den Benutzer
-    if (sizeLimitExceeded) {
-        showToast(`Einige Dateien waren zu groß (Limit: ${MAX_VIDEO_SIZE_MB}MB Video / ${MAX_IMAGE_AUDIO_SIZE_MB}MB Bild/Audio)`);
-    } else if (uploadFailed) {
-        showToast('Fehler: Einige Medien konnten nicht hochgeladen werden.');
-    } else if (newClips.length > 0) {
-        showToast(`${newClips.length} Medien erfolgreich hochgeladen!`);
-    } else if (filesToUpload.length > 0 && !sizeLimitExceeded) {
-        // Fall: Dateien verarbeitet, aber keine hinzugefügt (z.B. alle zu groß)
-        showToast('Keine neuen Medien hinzugefügt.');
-    }
-
+    const newClips = (await Promise.all(newClipsPromises)).filter(Boolean); // filter(Boolean) entfernt null-Werte
     state.currentMediaClips.push(...newClips);
 
+    if (newClips.length > 0) {
+        showToast(`${newClips.length} Medien erfolgreich hochgeladen!`);
+    }
+
     renderMediaClips();
-    event.target.value = ''; 
+    event.target.value = '';
 });
 
         const filmStrip = dom.mediaPage.filmStrip;
@@ -1513,37 +1482,6 @@ const updateUserUI = (user) => {
     }
 };
 
-const setupRealtimeSubscriptions = () => {
-    console.log('Richte Echtzeit-Subscriptions ein...');
-
-    const handleRealtimeUpdate = (payload) => {
-        console.log('Echtzeit-Änderung empfangen!', payload);
-        showToast('Inhalte werden synchronisiert...');
-        loadProjectsFromSupabase();
-    };
-
-    // 1. Subscription für die 'projects' Tabelle
-    // ALT: const projectSubscription = supabaseClient
-    supabaseClient // NEU: Ohne Zuweisung
-        .channel('public:projects')
-        .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'projects' },
-            handleRealtimeUpdate
-        )
-        .subscribe();
-
-    // 2. Subscription für die 'media_clips' Tabelle
-    // ALT: const mediaClipSubscription = supabaseClient
-    supabaseClient // NEU: Ohne Zuweisung
-        .channel('public:media_clips')
-        .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'media_clips' },
-            handleRealtimeUpdate
-        )
-        .subscribe();
-};
 
 const init = async () => { // Mache die Funktion async
     setupEventListeners();
@@ -1553,7 +1491,6 @@ const init = async () => { // Mache die Funktion async
     await loadProjectsFromSupabase(); // Projekte aus Supabase laden
     //renderAllProjects(); // Projekte rendern
     
-    setupRealtimeSubscriptions();
     switchPage('media-page');
 
     createPerforations(dom.mediaPage.perfTop);
