@@ -438,14 +438,43 @@ if (clip.author) {
         return frame;
     };
 
-    const renderAllProjects = () => {
-        dom.projectsPage.container.innerHTML = '';
-        if (state.allProjects.length === 0) {
-            dom.projectsPage.container.innerHTML = `<p class="text-center text-gray-500">Noch keine Projekte erstellt.</p>`;
+const renderAllProjects = () => {
+        // NEU: Filterung
+        if (!state.currentUser || !state.currentUser.id) {
+            dom.projectsPage.container.innerHTML = `<p class="text-center text-gray-500">Bitte einloggen, um deine Projekte zu sehen.</p>`;
             return;
         }
-        state.allProjects.forEach(p => dom.projectsPage.container.appendChild(createProjectCard(p)));
-        renderProjectMarkers();
+
+        const currentUserId = state.currentUser.id;
+        const myProjects = state.allProjects.filter(project => {
+            // 1. Ist es von mir erstellt?
+            if (project.user_id === currentUserId) {
+                return true;
+            }
+            // 2. Ist es ein Collab-Projekt, zu dem ich beigetragen habe?
+            if (project.mode === 'together') {
+                // Prüfen, ob eines der Medien von mir ist
+                if (project.media.some(clip => clip.user_id === currentUserId)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        // ENDE: Filterung
+
+        dom.projectsPage.container.innerHTML = '';
+        
+        // Prüfe die GEFILTERTE Liste
+        if (myProjects.length === 0) {
+            dom.projectsPage.container.innerHTML = `<p class="text-center text-gray-500">Noch keine Projekte erstellt oder beigetreten.</p>`;
+            return;
+        }
+        
+        // Rendere die GEFILTERTE Liste
+        myProjects.forEach(p => dom.projectsPage.container.appendChild(createProjectCard(p)));
+
+        // Die Marker-Render-Funktion wird NICHT geändert. 
+        // Sie ist an 'loadProjectsFromSupabase' gekoppelt und soll ALLE Projekte auf der Karte zeigen.
     };
 
 
@@ -580,19 +609,57 @@ if (clip.author) {
         switchPage('media-page');
     };
 
-    // Änderungen speichern
-    const handleSaveClipChanges = () => {
-        const projectIndex = state.allProjects.findIndex(p => p.id === state.currentlyEditingProjectId);
-        if (projectIndex > -1) {
-            state.allProjects[projectIndex].media = state.currentMediaClips;
-            if (state.currentMediaClips.length > 0) {
-                state.allProjects[projectIndex].thumbnail = state.currentMediaClips[0].src;
-            } else {
-                state.allProjects[projectIndex].thumbnail = 'https://placehold.co/80x80/e0e0e0/333?text=leer';
-            }
+// ÄNDERUNGEN SPEICHERN (KOMPLETT ERSETZEN)
+    const handleSaveClipChanges = async () => {
+        const projectId = state.currentlyEditingProjectId;
+        if (!projectId) return;
+
+        showToast("Speichere Änderungen...");
+
+        // 1. Alle alten Clips für dieses Projekt löschen
+        const { error: deleteError } = await supabaseClient
+            .from('media_clips')
+            .delete()
+            .eq('project_id', projectId);
+
+        if (deleteError) {
+            console.error('Fehler beim Löschen alter Clips:', deleteError);
+            showToast('Fehler: Konnte alte Clips nicht entfernen.');
+            return;
         }
-        showToast("Änderungen gespeichert!");
-        renderAllProjects();
+
+        // 2. Die aktuelle Clip-Liste vorbereiten (aus dem state)
+        const clipsToInsert = state.currentMediaClips.map((clip, index) => {
+            // Stelle sicher, dass alle benötigten Daten vorhanden sind
+            if (!clip.path || !clip.user_id || !clip.author) {
+                 console.warn("Clip im State fehlen Daten:", clip);
+            }
+            
+            return {
+                project_id: projectId,
+                file_path: clip.path, // 'path' wurde in loadProjectsFromSupabase hinzugefügt
+                type: clip.type,
+                user_id: clip.user_id, // 'user_id' wurde in loadProjectsFromSupabase hinzugefügt
+                author_name: clip.author,
+                sort_order: index
+            };
+        });
+
+        // 3. Die neue, sortierte Liste einfügen
+        const { error: insertError } = await supabaseClient
+            .from('media_clips')
+            .insert(clipsToInsert);
+
+        if (insertError) {
+            console.error('Fehler beim Speichern neuer Clips:', insertError);
+            showToast('Fehler: Neue Medien konnten nicht gespeichert werden.');
+        } else {
+            showToast("Änderungen gespeichert!");
+        }
+
+        // 4. Alles neu laden, um sauberen Datenstand zu haben
+        await loadProjectsFromSupabase();
+        resetMediaPage(); // Media-Seite zurücksetzen
         switchPage('projects-page');
     };
 
@@ -1153,7 +1220,7 @@ const handleSaveProject = async () => {
             file_path: clip.path,      // Der private Pfad aus dem Storage-Upload
             type: clip.type,
             user_id: clip.user_id,          // (UUID)
-            author_name: clip.author_name,  // (Name als Cache)
+            author_name: clip.author,  // (Name als Cache)
             sort_order: index          // Reihenfolge speichern
         }));
 
@@ -1602,7 +1669,7 @@ const loadProjectsFromSupabase = async () => {
         return;
     }
 
-    // Daten in das Format umwandeln, das deine App erwartet
+// Daten in das Format umwandeln, das deine App erwartet
     state.allProjects = data.map(project => {
         const media = project.media_clips
             .sort((a, b) => a.sort_order - b.sort_order) // Sortieren sicherstellen
@@ -1610,11 +1677,14 @@ const loadProjectsFromSupabase = async () => {
                 id: clip.file_path, // Eindeutige ID
                 src: supabaseClient.storage.from('media-clips').getPublicUrl(clip.file_path).data.publicUrl,
                 type: clip.type,
-                author: clip.author_name
+                author: clip.author_name,
+                user_id: clip.user_id,
+                path: clip.file_path   
             }));
 
         return {
             id: project.id,
+            user_id: project.user_id, 
             title: project.title,
             description: project.description,
             location: project.location,
@@ -1625,8 +1695,8 @@ const loadProjectsFromSupabase = async () => {
             media: media
         };
     });
-    renderAllProjects(); // <<< DIESE ZEILE HINZUFÜGEN!
-    renderProjectMarkers(); // <<< UND DIESE! (Marker auch neu zeichnen)
+    renderAllProjects(); 
+    renderProjectMarkers(); 
 };
 
 const handleAvatarDelete = async () => {
