@@ -1285,6 +1285,7 @@ const updateAuthForm = () => {
         dom.auth.logoutBtn.addEventListener('click', async () => {
             await supabaseClient.auth.signOut();
             updateUserUI(null);
+            renderAllProjects();
             showToast('Erfolgreich ausgeloggt.');
         });
     
