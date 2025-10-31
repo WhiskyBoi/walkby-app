@@ -237,10 +237,11 @@ p {
     border-color: var(--primary-color);
 }
 
-/* BESSERE Auth & Action Buttons */
+/* Auth & Action Buttons */
 .btn-primary {
     background-color: var(--secondary-color);
     color: white;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 .btn-primary:hover {
     background-color: var(--accent-color);
@@ -249,6 +250,7 @@ p {
 .btn-secondary {
     background-color: var(--bg-mid);
     color: var(--text-dark);
+    transition: background-color 0.2s ease;
 }
 .btn-secondary:hover {
     background-color: #DCD5D3;

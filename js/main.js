@@ -36,6 +36,25 @@ const showToast = (message) => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    // 1. Liste aller Template-IDs
+    const modalTemplateIds = [
+        'template-welcome-modal',
+        'template-project-modal',
+        'template-auth-modal',
+        'template-playback-modal',
+        'template-profile-modal'
+    ];
+
+    // 2. Schleife durchlaufen, Templates klonen und an den body anhängen
+    modalTemplateIds.forEach(id => {
+        const template = document.getElementById(id);
+        if (template) {
+            const clone = template.content.cloneNode(true);
+            document.body.appendChild(clone);
+        }
+    });
+    
     const dom = {
         pages: document.querySelectorAll('.page'),
         navButtons: document.querySelectorAll('.floating-nav-item'),

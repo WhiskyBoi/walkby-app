@@ -22,16 +22,15 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body class="h-full flex items-center justify-center p-0 md:p-4 bg-gray-100">  <! --  lg:bg-red-500 -->
+<body class="h-full flex items-center justify-center p-0 md:p-4 bg-gray-100"> 
 
     <div
         class="container relative w-full h-full md:max-w-lg lg:max-w-xl bg-surface-container-low shadow-lg md:rounded-2xl overflow-hidden flex flex-col">
         <header class="header-fixed z-20 p-4 flex-shrink-0 bg-surface-container-low">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-4">
-                    <img src="https://thumbs.dreamstime.com/b/chibi-photographer-action-pose-camera-370575791.jpg"
-                        alt="WalkBy Logo - Chibi Ape with Camera"
-                        class="w-14 h-14 rounded-full object-cover shadow-sm p-1 bg-amber-100" />
+                    <img src="anime-chibi.png" alt="WalkBy Logo - Chibi mit Kamera" class="w-14 h-14 rounded-full object-cover shadow-sm p-1 bg-amber-100" />
+                        
                     <div>
                         <h1 class="font-playfair text-3xl font-bold text-on-surface">WalkBy</h1>
                         <p class="font-poppins text-sm text-on-surface-variant opacity-90">Deine Geschichte, deine
@@ -39,9 +38,9 @@
                     </div>
                 </div>
                 <div id="user-profile-display" class="flex items-center gap-4">
-                    <button id="login-btn" class="btn-primary px-4 py-2 text-sm font-semibold rounded-lg shadow-md transition-colors">Login</button>
+                    <button id="login-btn" class="btn-primary px-4 py-2 text-sm font-semibold rounded-lg shadow-md">Login</button>
                     <div id="user-avatar" class="hidden w-12 h-12 bg-red-500 text-white flex items-center justify-center rounded-full text-xl font-bold cursor-pointer"></div>
-                    <button id="logout-btn" class="btn-secondary hidden px-4 py-2 text-sm font-semibold rounded-lg shadow-md transition-colors">Logout</button>
+                    <button id="logout-btn" class="btn-secondary hidden px-4 py-2 text-sm font-semibold rounded-lg shadow-md">Logout</button>
                 </div>
             </div>
         </header>
@@ -89,7 +88,7 @@
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-2xl font-bold text-gray-800">Meine Projekte</h2>
                     <button id="add-new-project-btn"
-                        class="btn-primary px-4 py-2 rounded-lg shadow-md transition-colors text-sm font-semibold flex items-center gap-2">
+                        class="btn-primary px-4 py-2 rounded-lg shadow-md text-sm font-semibold flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd"
                                 d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
@@ -125,6 +124,7 @@
         </nav>
     </div>
 
+        <template id="template-welcome-modal">
         <div id="welcome-modal" class="modal fixed inset-0 bg-black bg-opacity-70 z-[100] flex items-center justify-center hidden opacity-0 p-4 transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center relative transform scale-95 transition-all duration-300">
             <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-amber-300 p-3 rounded-full shadow-lg">
@@ -140,8 +140,10 @@
             </button>
         </div>
     </div>
+    </template>
 
     <! --  Projekterstellung Modal -->
+    <template id="template-project-modal">
     <div id="create-project-modal"
         class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
@@ -236,8 +238,11 @@
 </div>
         </div>
     </div>
-    
+    </template>
+
+
     <! --  Authentifizierung Modal -->
+    <template id="template-auth-modal">
     <div id="auth-modal" class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 space-y-4 relative">
         <button id="close-auth-modal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
@@ -259,9 +264,10 @@
         </p>
     </div>
 </div>
-
+</template>
 
     <! --  Wiedergabe Modal -->
+    <template id="template-playback-modal">
     <div id="playback-modal"
         class="modal fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col items-center justify-center hidden opacity-0 p-16">
         <div id="curtain-left" class="curtain left"></div>
@@ -292,19 +298,19 @@
             </div>
         </div>
     </div>
+    </template>
 
     <! --  Toast Benachrichtigung -->
     <div id="toast-notification"
         class="fixed bottom-[-100px] left-1/2 -translate-x-1.2 -translate-x-1/2 bg-gray-800 text-white py-3 px-6 rounded-full shadow-lg transition-all duration-500 ease-in-out z-[100]">
     </div>
 
-
     <! --  Profil Anzeige/Eingabe -->
     <div id="profile-modal" class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 space-y-4">
         <div class="flex justify-between items-center">
             <h3 class="text-xl font-bold text-gray-800">Dein Profil</h3>
-            <button id="profile-modal-close" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            <button id="profile-modal-close" aria-label="Schließen" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
         </div>
         
         <div class="flex flex-col items-center gap-4">
@@ -330,5 +336,4 @@
 
     <script src="js/main.js" defer></script>
 </body>
-
 </html>
