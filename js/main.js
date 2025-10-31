@@ -797,6 +797,12 @@ if (clip.author) {
 
     // Die Funktion für den "Mitmachen"-Button
     const handleJoinProject = (projectId) => {
+        // NEU: Prüfen, ob der Nutzer eingeloggt ist
+        if (!state.currentUser.id) {
+            showToast("Bitte einloggen, um bei einem Projekt mitzumachen.");
+            return; // Funktion hier abbrechen
+        }
+    
         if (state.maps.main) {
             state.maps.main.closePopup();
         }
