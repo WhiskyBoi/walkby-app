@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body class="h-full flex items-center justify-center p-0 md:p-4 bg-gray-100">   <! --  lg:bg-red-500 -->
+<body class="h-full flex items-center justify-center p-0 md:p-4 bg-gray-100">  <! --  lg:bg-red-500 -->
 
     <div
         class="container relative w-full h-full md:max-w-lg lg:max-w-xl bg-surface-container-low shadow-lg md:rounded-2xl overflow-hidden flex flex-col">
@@ -39,9 +39,9 @@
                     </div>
                 </div>
                 <div id="user-profile-display" class="flex items-center gap-4">
-                    <button id="login-btn" class="px-4 py-2 text-sm font-semibold text-white rounded-lg shadow-md transition-colors">Login</button>
+                    <button id="login-btn" class="btn-primary px-4 py-2 text-sm font-semibold rounded-lg shadow-md transition-colors">Login</button>
                     <div id="user-avatar" class="hidden w-12 h-12 bg-red-500 text-white flex items-center justify-center rounded-full text-xl font-bold cursor-pointer"></div>
-                    <button id="logout-btn" class="hidden px-4 py-2 text-sm font-semibold text-white bg-gray-500 rounded-lg shadow-md hover:bg-gray-600 transition-colors">Logout</button>
+                    <button id="logout-btn" class="btn-secondary hidden px-4 py-2 text-sm font-semibold rounded-lg shadow-md transition-colors">Logout</button>
                 </div>
             </div>
         </header>
@@ -89,7 +89,7 @@
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-2xl font-bold text-gray-800">Meine Projekte</h2>
                     <button id="add-new-project-btn"
-                        class="text-white px-4 py-2 rounded-lg shadow-md transition-colors text-sm font-semibold flex items-center gap-2">
+                        class="btn-primary px-4 py-2 rounded-lg shadow-md transition-colors text-sm font-semibold flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd"
                                 d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
@@ -135,7 +135,7 @@
                 Erstelle multimediale Geschichten an echten Orten. Lade Bilder oder Videos hoch und teile deine Entdeckungen mit anderen.
             </p>
             <p class="text-xs text-gray-400 mt-4">Vielen Dank, dass du unsere App nutzt!</p>
-            <button id="close-welcome-modal" class="mt-6 w-full py-2 px-4 text-sm font-medium text-white rounded-lg">
+            <button id="close-welcome-modal" class="btn-primary mt-6 w-full py-2 px-4 text-sm font-medium rounded-lg">
                 Los geht's!
             </button>
         </div>
@@ -209,7 +209,7 @@
                             class="flex-grow border border-gray-300 rounded-md shadow-sm py-2 px-3"
                             placeholder="z.B. Jungfernstieg 1, Hamburg">
                         <button id="location-search-btn"
-                            class="px-3 py-2 text-sm font-medium text-white rounded-lg">Suchen</button>
+                            class="btn-primary px-3 py-2 text-sm font-medium rounded-lg">Suchen</button>
                        <button id="use-my-location-btn" title="Meinen Standort verwenden" class="p-2 text-gray-500 hover:text-blue-600">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
@@ -225,13 +225,13 @@
 
            <div class="flex justify-end gap-4 pt-4 border-t">
     
-    <button id="cancel-create-project" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Abbrechen</button>
+    <button id="cancel-create-project" class="btn-secondary px-4 py-2 text-sm font-medium rounded-lg">Abbrechen</button>
     
-    <button id="modal-back-btn" type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 hidden">Zurück</button>
+    <button id="modal-back-btn" type="button" class="btn-secondary px-4 py-2 text-sm font-medium rounded-lg hidden">Zurück</button>
 
-    <button id="modal-next-btn" type="button" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg">Weiter</button>
+    <button id="modal-next-btn" type="button" class="btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg">Weiter</button>
 
-    <button id="confirm-create-project" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg hidden">Speichern</button>
+    <button id="confirm-create-project" class="btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg hidden">Speichern</button>
     
 </div>
         </div>
@@ -251,7 +251,7 @@
                 <label for="auth-password" class="block text-sm font-medium text-gray-700">Passwort</label>
                 <input type="password" id="auth-password" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
             </div>
-            <button type="submit" id="auth-submit-btn" class="w-full py-2 px-4 text-sm font-medium text-white rounded-lg">Einloggen</button>
+            <button type="submit" id="auth-submit-btn" class="btn-primary w-full py-2 px-4 text-sm font-medium rounded-lg">Einloggen</button>
         </form>
         <p class="text-center text-sm">
             <span id="auth-switch-text">Noch kein Konto?</span>
@@ -312,7 +312,7 @@
             <img id="profile-image-preview" src="https://placehold.co/128x128/e0e0e0/777?text=Avatar" alt="Profilbild Vorschau" class="w-32 h-32 rounded-full object-cover bg-gray-200">
             
             <input type="file" id="avatar-upload-input" class="hidden" accept="image/png, image/jpeg">
-            <button id="avatar-upload-btn" class="w-full py-2 px-4 text-sm font-medium text-white rounded-lg">
+            <button id="avatar-upload-btn" class="btn-primary w-full py-2 px-4 text-sm font-medium rounded-lg">
                 Bild auswählen...
             </button>
 

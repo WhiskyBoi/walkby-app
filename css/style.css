@@ -1,28 +1,17 @@
 :root {
-    /* -- BEFORE --
-    --primary-color: #32527B;
-    --secondary-color: #DAAF5B;
-    --tertiary-color: #AD645B;
-    --bg-light: #F6F5F2;
-    --bg-mid: #EBEBEB;
-    --text-dark: #282C34;
-    --text-light: #4B5563;
-    */
-
-    /* -- AFTER -- */
     --primary-color: #1D4A59;   /* Hauptfarbe (Petrol) */
     --secondary-color: #E57A44; /* Sekundärfarbe (Terrakotta) */
     --accent-color: #F2C14E;    /* Akzentfarbe (Gold) */
 
     --text-dark: #1A1A1A;        /* Neutral (Text) */
     --bg-light: #F4F1ED;         /* Neutral (Hintergrund) */
-    --bg-mid: #EBEBEB;           /* Beibehalten für neutrale UI-Elemente */
+    --bg-mid: #EBEBEB;           /* Für neutrale UI-Elemente */
 
     --signal-success: #2ECC71;
     --signal-error: #E74C3C;
     --signal-warning: #F39C12;
 
-    --text-light: #4B5563;       /* Beibehalten für weniger wichtigen Text */
+    --text-light: #4B5563;       /* Für weniger wichtigen Text */
 }
 
 html {
@@ -50,10 +39,6 @@ body {
 
 .font-playfair {
     font-family: 'Playfair Display', serif;
-}
-
-h1, h2, h3 {
-    color: var(--text-dark);
 }
 
 p {
@@ -252,23 +237,20 @@ p {
     border-color: var(--primary-color);
 }
 
-/* Auth & Action Buttons */
-#login-btn, #auth-submit-btn, #confirm-create-project, #modal-next-btn, #add-new-project-btn, #avatar-upload-btn, #close-welcome-modal {
+/* BESSERE Auth & Action Buttons */
+.btn-primary {
     background-color: var(--secondary-color);
     color: white;
 }
-
-#login-btn:hover, #auth-submit-btn:hover, #close-auth-modal:hover, #confirm-create-project:hover, #modal-next-btn:hover, #add-new-project-btn:hover, #avatar-upload-btn:hover, #close-welcome-modal:hover {
+.btn-primary:hover {
     background-color: var(--accent-color);
-    color: var(--text-dark); /* Besserer Kontrast bei Hover */
+    color: var(--text-dark);
 }
-
-#cancel-create-project, #close-auth-modal, #modal-back-btn, #logout-btn, .toggle-description-btn {
+.btn-secondary {
     background-color: var(--bg-mid);
     color: var(--text-dark);
 }
-
-#cancel-create-project:hover, #close-auth-modal, #modal-back-btn:hover, #logout-btn:hover, .toggle-description-btn:hover {
+.btn-secondary:hover {
     background-color: #DCD5D3;
 }
 
@@ -565,21 +547,6 @@ button:disabled {
     align-items: center;
     gap: 8px;
     /* Abstand zwischen Titel und Button */
-}
-
-.toggle-description-btn {
-    background: none;
-    border: none;
-    padding: 2px;
-    cursor: pointer;
-    color: #6b7280; /* Ein neutrales Grau */
-    border-radius: 50%;
-    transition: background-color 0.2s;
-}
-
-/* Leichter Hover-Effekt */
-.toggle-description-btn:hover {
-    background-color: #f3f4f6;  
 }
 
 .description-content {
