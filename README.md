@@ -23,6 +23,13 @@ Walkby ist eine interaktive Web-Anwendung, mit der Benutzer ortsbasierte, multim
 
 ## Setup
 
+### Klonen des Repositories
+
+```bash
+git clone [https://github.com/whiskyboi/walkby-app.git](https://github.com/whiskyboi/walkby-app.git)
+cd walkby-app
+
+Da das Projekt JavaScript-Module und `fetch`-Anfragen verwendet, kann es aus Sicherheitsgründen **nicht** direkt durch Öffnen der "index.html"-Datei im Browser ausgeführt werden. Sie müssen es über einen lokalen Webserver bereitstellen.
 Um das Projekt lokal auszuführen, befolge diese Schritte:
 
 1.  **Klone das Repository:**
@@ -32,16 +39,6 @@ Um das Projekt lokal auszuführen, befolge diese Schritte:
 
 2.  **Öffne die `index.html`:**
     Da das Projekt keine Build-Schritte benötigt, kannst du die `index.html`-Datei direkt in deinem Webbrowser öffnen, um die Anwendung zu starten.
-
-3.  **Supabase-Konfiguration (Optional):**
-    Die App ist mit einem öffentlichen Supabase-Projekt verbunden. Wenn du dein eigenes Backend aufsetzen möchtest, musst du ein neues Projekt bei Supabase erstellen und die URL sowie den `anon key` in der `js/main.js`-Datei ersetzen.
-
-    ```javascript
-    const supabaseClient = supabase.createClient(
-        'DEINE_SUPABASE_URL',
-        'DEIN_SUPABASE_ANON_KEY'
-    );
-    ```
 
 ## Lizenz
 

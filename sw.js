@@ -1,20 +1,24 @@
-const CACHE_NAME = 'walkby-app-shell-v2';
+// Alter Cache-Name für die Aufräum-Routine
+const OLD_CACHE_NAME = 'walkby-app-shell-v2';
+// Neuer Name, damit der SW merkt, dass er sich aktualisieren muss
+const CACHE_NAME = 'walkby-app-shell-v3'; 
 
 // Liste der Dateien, die die "App Shell" bilden
+// manifest.json und das Logo für echtes Offline-Verhalten
 const APP_SHELL_FILES = [
   '/',
   '/index.html',
   '/css/style.css',
   '/js/main.js',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-  // Füge hier weitere wichtige Assets hinzu, z.B. das Logo oder die Icon-Dateien
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+  '/manifest.json',
+  '/anime-chibi.png' 
 ];
 
 // Event 1: Installation
-// Wird ausgelöst, wenn der Service Worker installiert wird.
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installation...');
+  console.log('Service Worker: Installation v3...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -25,33 +29,46 @@ self.addEventListener('install', (event) => {
 });
 
 // Event 2: Fetch (Netzwerkanfragen)
-// Wird bei JEDER Anfrage (z.B. für CSS, JS, Bilder) ausgelöst.
+// KORRIGIERTE LOGIK: Unterscheidet zwischen App Shell und API-Anfragen
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    // Strategie "Cache-First" (für die App Shell):
-    // 1. Versuche, die Anfrage aus dem Cache zu beantworten.
-    caches.match(event.request)
-      .then((response) => {
-        if (response) {
-          // 1a. Im Cache gefunden -> direkt zurückgeben (schnell & offline)
-          return response;
-        }
-        // 1b. Nicht im Cache -> zum Netzwerk gehen und anfragen
-        return fetch(event.request);
-      })
-  );
+  
+  // 1. Prüfen, ob die URL im APP_SHELL_FILES-Array enthalten ist
+  // Wir müssen die URL-Pfade abgleichen
+  const requestUrl = new URL(event.request.url);
+  const isAppShellUrl = APP_SHELL_FILES.includes(requestUrl.pathname) || 
+                        APP_SHELL_FILES.includes(requestUrl.href);
+
+  if (isAppShellUrl) {
+    // 2. WENN es eine App-Shell-Datei ist -> "Cache-First"-Strategie
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          if (response) {
+            return response; // Aus dem Cache zurückgeben
+          }
+          // Nicht im Cache -> zum Netzwerk gehen
+          return fetch(event.request);
+        })
+    );
+  } else {
+    // 3. WENN es KEINE App-Shell-Datei ist (z.B. API-Call an Supabase, Bilder-Uploads)
+    //    -> "Network-Only"-Strategie. 
+    //    Wir leiten die Anfrage einfach ans Netzwerk weiter.
+    event.respondWith(fetch(event.request));
+  }
 });
 
+
 // Event 3: Activate (Aufräumen)
-// Wird ausgelöst, wenn ein neuer Service Worker einen alten ersetzt.
+// LÖSCHT JETZT DEN ALTEN CACHE 'walkby-app-shell-v2'
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Aktivierung...');
+  console.log('Service Worker: Aktivierung v3...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           // Lösche alle Caches, die nicht dem aktuellen CACHE_NAME entsprechen
-          if (cache !== CACHE_NAME) {
+          if (cache !== CACHE_NAME) { 
             console.log('Service Worker: Alten Cache löschen:', cache);
             return caches.delete(cache);
           }
