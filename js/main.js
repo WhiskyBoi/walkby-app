@@ -61,6 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
         mediaPage: {
             title: document.getElementById('media-page-title'),
             filmStrip: document.getElementById('film-strip-content'),
+            filmStripContainer: document.querySelector('.film-reel-media-strip'),
+            mediaCounter: document.getElementById('media-counter'),
             addMediaFrame: document.getElementById('add-media-frame'),
             mediaUploadInput: document.getElementById('mediaUploadInput'),
             actionBtn: document.getElementById('media-page-action-btn'),
@@ -271,9 +273,27 @@ document.addEventListener('DOMContentLoaded', () => {
         state.currentMediaClips = [];
         state.isEditMode = false;
         state.currentlyEditingProjectId = null;
-        dom.mediaPage.title.textContent = 'Neues Projekt';
-        dom.mediaPage.actionBtn.textContent = 'Projekt erstellen';
-        renderMediaClips();
+        
+        const isLoggedIn = state.currentUser.id; // Prüft, ob ein Nutzer eingeloggt ist
+
+        if (isLoggedIn) {
+            // Zustand: Eingeloggt
+            dom.mediaPage.title.textContent = 'Neues Projekt';
+            dom.mediaPage.mediaCounter.style.display = 'block';
+            dom.mediaPage.actionBtn.textContent = 'Projekt erstellen';
+            dom.mediaPage.actionBtn.style.display = 'block'; // Button anzeigen
+            // Entfernt den "Ausgrau"-Stil
+            dom.mediaPage.filmStripContainer.classList.remove('media-disabled');
+        } else {
+            // Zustand: Nicht eingeloggt
+            dom.mediaPage.title.textContent = 'Bitte logge dich ein';
+            dom.mediaPage.mediaCounter.style.display = 'none';
+            dom.mediaPage.actionBtn.style.display = 'none'; // "Projekt erstellen" Button verstecken
+            // Fügt den "Ausgrau"-Stil hinzu
+            dom.mediaPage.filmStripContainer.classList.add('media-disabled');
+        }
+
+        renderMediaClips(); // Clips rendern (wird im "disabled" Fall ausgegraut)
         updateMediaCounter();
     };
 
@@ -1366,16 +1386,14 @@ dom.auth.form.addEventListener('submit', async (e) => {
         toggleModal(dom.auth.modal, false);
         updateUserUI(data.user); // UI und state.currentUser aktualisieren
         
-        // ---- NEUE ANFORDERUNGEN ----
         // 1. Lade ALLE Projekte neu, jetzt da der Nutzer eingeloggt ist
         await loadProjectsFromSupabase(); 
         
         // 2. Zeige dem Nutzer direkt seine Projektseite
         // (renderAllProjects wird automatisch von loadProjectsFromSupabase aufgerufen)
-        switchPage('projects-page');
-        
+        switchPage('media-page');
+        resetMediaPage();
         showToast(state.authMode === 'login' ? 'Erfolgreich eingeloggt.' : 'Konto erfolgreich erstellt!');
-        // ---- ENDE NEUE ANFORDERUNGEN ----
     }
     
     dom.auth.submitBtn.disabled = false;

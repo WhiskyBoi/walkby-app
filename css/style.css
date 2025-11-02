@@ -597,3 +597,26 @@ button:disabled {
     background-color: var(--accent-color);
     color: var(--text-dark);
 }
+
+/* === Stil für deaktivierten Filmstreifen (wenn nicht eingeloggt) === */
+.film-reel-media-strip.media-disabled {
+    pointer-events: none; /* Verhindert Klicks */
+    user-select: none;    /* Verhindert Textauswahl */
+    background-color: #222; /* Sehr dunkles Grau statt tiefschwarz */
+}
+
+/* Den inneren weißen Bereich (wo die Frames liegen) ausgrauen */
+.media-disabled #film-strip-content-wrapper {
+    background-color: #444; /* Dunkelgrau statt weiß */
+    opacity: 0.6;
+}
+
+/* Die Perforationslöcher an den dunklen Hintergrund anpassen */
+.media-disabled .perforation-hole {
+    background-color: #444; /* Dunkelgrau statt weiß */
+}
+
+/* Versteckt auch den "Hinzufügen"-Button, wenn er deaktiviert ist */
+.media-disabled #add-media-frame {
+    display: none !important;
+}
