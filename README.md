@@ -1,8 +1,8 @@
 # walkby-app
 
-Walkby ist eine interaktive Web-Anwendung, mit der Benutzer ortsbasierte, multimediale Geschichten – sogenannte "Walkbys" – erstellen und entdecken können. Lade Bilder, Videos oder Audio-Clips hoch, platziere sie an einem Ort auf der Karte und teile deine Geschichte mit anderen.
+WalkBy ist eine interaktive Progressive Web App, mit der Benutzer ortsbasierte, multimediale Geschichten erstellen und entdecken können. Lade Bilder, Videos oder Audio-Clips hoch, platziere sie an einem Ort auf der Karte und teile deine Geschichte mit anderen.
 
-**➡️ Live-Demo:** [**extraordinary-caramel-d5019a.netlify.app**](https://extraordinary-caramel-d5019a.netlify.app/)
+Folge diesem Link für die **➡️ Live-Demo:** [**extraordinary-caramel-d5019a.netlify.app**](https://extraordinary-caramel-d5019a.netlify.app/)
 
 ## Features
 
@@ -25,20 +25,21 @@ Walkby ist eine interaktive Web-Anwendung, mit der Benutzer ortsbasierte, multim
 
 ### Klonen des Repositories
 
-```bash
-git clone [https://github.com/whiskyboi/walkby-app.git](https://github.com/whiskyboi/walkby-app.git)
-cd walkby-app
-
-Da das Projekt JavaScript-Module und `fetch`-Anfragen verwendet, kann es aus Sicherheitsgründen **nicht** direkt durch Öffnen der "index.html"-Datei im Browser ausgeführt werden. Sie müssen es über einen lokalen Webserver bereitstellen.
 Um das Projekt lokal auszuführen, befolge diese Schritte:
 
 1.  **Klone das Repository:**
     ```bash
-    git clone [https://github.com/dein-username/walkby-app.git](https://github.com/dein-username/walkby-app.git)
+    git clone [https://github.com/whiskyboi/walkby-app.git](https://github.com/whiskyboi/walkby-app.git)
+    cd walkby-app
     ```
 
-2.  **Öffne die `index.html`:**
-    Da das Projekt keine Build-Schritte benötigt, kannst du die `index.html`-Datei direkt in deinem Webbrowser öffnen, um die Anwendung zu starten.
+2.  **Starte einen lokalen Webserver:**
+    Am einfachsten geht das mit `npx` (Teil von Node.js):
+    ```bash
+    npx serve
+
+3.  **Öffne die Anwendung im Browser:**
+    Öffne die Adresse, die der Server anzeigt (z. B. `http://localhost:3000` oder `http://localhost:8000`).
 
 ## Lizenz
 
