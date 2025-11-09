@@ -37,6 +37,7 @@ body {
     border-bottom: 1px solid #DCD5D3;
 }
 
+/* Schriftart */
 .font-playfair {
     font-family: 'Playfair Display', serif;
 }
@@ -148,18 +149,18 @@ p {
     left: 8px;
     right: 8px;
     bottom: 8px;
-    border-color: var(--secondary-color); /* Anpassung */
+    border-color: var(--secondary-color);
 }
 
 #add-media-frame .text-3xl {
-    color: var(--secondary-color); /* Anpassung */
+    color: var(--secondary-color); 
 }
 
 .delete-media-btn {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s;
-    background-color: var(--signal-error) !important; /* Wichtig für Sichtbarkeit */
+    background-color: var(--signal-error) !important;
 }
 
 .film-frame-item:hover .delete-media-btn {
@@ -219,8 +220,8 @@ p {
 }
 
 .media-page-action-btn:not(:disabled) {
-    background: var(--secondary-color); /* Akzent für Hauptaktion */
-    box-shadow: 0 8px 20px rgba(229, 122, 68, 0.4); /* Schatten angepasst */
+    background: var(--secondary-color);
+    box-shadow: 0 8px 20px rgba(229, 122, 68, 0.4); 
     cursor: pointer;
 }
 
@@ -282,8 +283,6 @@ p {
 .mode-selector-btn.active .inner-dot {
     background-color: var(--primary-color);
 }
-
-/* --- ENDE: Stile für Modus-Auswahl --- */
 
 /* Map */
 #map {
@@ -355,7 +354,7 @@ button:disabled {
 }
 
 .walkby-marker-icon.marker-collab {
-    background-color: var(--accent-color); /* Tertiärfarbe wird durch Akzent ersetzt */
+    background-color: var(--accent-color); 
 }
 
 /* Stil für die Karten-Legende */
@@ -390,10 +389,9 @@ button:disabled {
     }
 }
 
-/* --- Cinematic Playback Styles --- */
+/* --- Cinematic Playback Stil --- */
 #playback-modal {
-    background-color: #000;
-    /* Dunklerer Hintergrund für Kino-Feeling */
+    background-color: #000; /* Dunklerer Hintergrund für Kino-Feeling */
     perspective: 1000px;
 }
 
@@ -484,7 +482,7 @@ button:disabled {
     }
 }
 
-/* Eigene Stile für die Karten-Pop-ups */
+/* Karten-Pop-ups */
 .custom-walkby-popup .leaflet-popup-content-wrapper {
     padding: 0;
     border-radius: 8px;
@@ -540,7 +538,6 @@ button:disabled {
     display: flex;
     align-items: center;
     gap: 6px;
-    /* Abstand zwischen Icon und Text */
 }
 
 .popup-title-container {
@@ -548,7 +545,6 @@ button:disabled {
     justify-content: space-between;
     align-items: center;
     gap: 8px;
-    /* Abstand zwischen Titel und Button */
 }
 
 .description-content {
@@ -598,11 +594,11 @@ button:disabled {
     color: var(--text-dark);
 }
 
-/* === Stil für deaktivierten Filmstreifen (wenn nicht eingeloggt) === */
+/* Stil für deaktivierten Filmstreifen (wenn nicht eingeloggt) */
 .film-reel-media-strip.media-disabled {
     pointer-events: none; /* Verhindert Klicks */
     user-select: none;    /* Verhindert Textauswahl */
-    background-color: #222; /* Sehr dunkles Grau statt tiefschwarz */
+    background-color: #222; /* dunkles Grau statt tiefschwarz */
 }
 
 /* Den inneren weißen Bereich (wo die Frames liegen) ausgrauen */
@@ -616,7 +612,7 @@ button:disabled {
     background-color: #444; /* Dunkelgrau statt weiß */
 }
 
-/* Versteckt auch den "Hinzufügen"-Button, wenn er deaktiviert ist */
+/* Versteckt den "Hinzufügen"-Button, wenn er deaktiviert ist */
 .media-disabled #add-media-frame {
     display: none !important;
 }

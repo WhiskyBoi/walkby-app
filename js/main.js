@@ -11,11 +11,13 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Supabase verbinden
 const supabaseClient = supabase.createClient(
     'https://bllmfzpmntqhopgwvyhm.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsbG1menBtbnRxaG9wZ3d2eWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNTk5NTcsImV4cCI6MjA3MDgzNTk1N30.cwaUVks55hMCNXw7kkHZ-eaiEElWG4bgVh-I75GFSpo' 
 );
 
+// Modal anzeigen - nicht anzeigen
 const toggleModal = (modal, show) => {
     if (show) {
         modal.classList.remove('hidden');
@@ -26,6 +28,7 @@ const toggleModal = (modal, show) => {
     }
 };
 
+// Toast Benachrichtigung
 const showToast = (message) => {
     const toast = document.getElementById('toast-notification');
     toast.textContent = message;
@@ -207,16 +210,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // 1. Initialisiere die Karte
             if (!state.maps.main) {
                 state.maps.main = initMap(dom.mapPage.mapElement, { center: [53.551, 9.993], zoom: 13 });
-                renderProjectMarkers(); // Marker jetzt hier rendern, da die Karte existiert.
+                renderProjectMarkers(); // Marker hier rendern
             }
 
-            // 2. WICHTIG: Gib der Karte einen Moment Zeit, um im DOM sichtbar zu werden,
-            //    und erzwinge dann eine Neu-Berechnung der Größe.
+            // 2. Karte einen Moment Zeit geben, um im DOM sichtbar zu werden, Neu-Berechnung der Größe.
             setTimeout(() => {
                 state.maps.main.invalidateSize();
 
-                // 3. Frage den Standort des Nutzers erst NACH der Größenanpassung ab
-                //    und nur, wenn es noch nicht geschehen ist.
+                // 3. Standortabfrage nach der Größenanpassung
                 if (!state.maps.userLocationRequested) {
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(
@@ -262,10 +263,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         showToast("Standortabfrage wird von diesem Browser nicht unterstützt.");
                     }
-                    // Setze die Flag, damit nicht erneut gefragt wird.
+                    // Flag, damit nicht erneut gefragt wird
                     state.maps.userLocationRequested = true;
                 }
-            }, 10); // Ein kleiner Timeout von 10ms genügt.
+            }, 10); // kleiner Timeout von 10ms
         }
     };
 
@@ -274,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.isEditMode = false;
         state.currentlyEditingProjectId = null;
         
-        const isLoggedIn = state.currentUser.id; // Prüft, ob ein Nutzer eingeloggt ist
+        const isLoggedIn = state.currentUser.id; // Prüfen ob ein Nutzer eingeloggt ist
 
         if (isLoggedIn) {
             // Zustand: Eingeloggt
@@ -293,10 +294,11 @@ document.addEventListener('DOMContentLoaded', () => {
             dom.mediaPage.filmStripContainer.classList.add('media-disabled');
         }
 
-        renderMediaClips(); // Clips rendern (wird im "disabled" Fall ausgegraut)
+        renderMediaClips(); // Clips rendern
         updateMediaCounter();
     };
 
+    // User Profil Farbe Innitialen
     const getColorForUser = (username) => {
     if (!username) return '#808080'; // Standard-Grau, falls kein Name vorhanden ist
 
@@ -306,12 +308,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     const hue = hash % 360; // Eine Farbe auf dem 360°-Farbkreis
-    // Wir halten Sättigung und Helligkeit konstant für schöne, kräftige Farben
-    return `hsl(${hue}, 70%, 45%)`; 
+    return `hsl(${hue}, 70%, 45%)`; //Sättigung und Helligkeit konstant für schöne, kräftige Farben
 };
 
+// Hochladen zu Supabase
 const uploadFileToSupabase = async (file, userId) => {
-    // NEU: Sicherheitsprüfung hinzufügen
     if (!userId) {
         showToast('Du musst angemeldet sein, um Dateien hochzuladen.');
         console.error('Upload-Versuch ohne angemeldeten Benutzer.');
@@ -322,7 +323,7 @@ const uploadFileToSupabase = async (file, userId) => {
     const filePath = `${userId}/${Date.now()}-${file.name}`;
 
     const { data, error } = await supabaseClient.storage
-        .from('media-clips') // Name deines Buckets
+        .from('media-clips') // Name des Buckets
         .upload(filePath, file);
 
     if (error) {
@@ -340,6 +341,8 @@ const uploadFileToSupabase = async (file, userId) => {
         publicUrl: urlData.publicUrl // Die URL zum Anzeigen
     };
 };
+
+// Avatar Upload    
 const handleAvatarUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -349,7 +352,7 @@ const handleAvatarUpload = async (event) => {
 
     dom.profileModal.statusText.textContent = 'Lade hoch...';
 
-    // 1. Datei in den 'avatars' Bucket hochladen
+    // 1. Datei in den "avatars" Bucket hochladen
     const filePath = `${user.id}/${Date.now()}-${file.name}`;
     const { error: uploadError } = await supabaseClient.storage
         .from('avatars')
@@ -360,7 +363,6 @@ const handleAvatarUpload = async (event) => {
         return console.error('Upload-Fehler:', uploadError);
     }
 
-// KORRIGIERTER BLOCK
 // 2. Öffentliche URL der Datei holen
 const { data: urlData, error: urlError } = supabaseClient.storage
     .from('avatars')
@@ -373,7 +375,7 @@ if (urlError) {
 
 // 3. URL in den Metadaten des Nutzers speichern
 const { error: updateUserError } = await supabaseClient.auth.updateUser({
-    data: { avatar_url: urlData.publicUrl } // <-- Korrektur hier
+    data: { avatar_url: urlData.publicUrl }
 });
 
     if (updateUserError) {
@@ -387,6 +389,7 @@ const { error: updateUserError } = await supabaseClient.auth.updateUser({
     setTimeout(() => toggleModal(dom.profileModal.modal, false), 1000);
 };
 
+// Perforations Löcher erstellen
     const createPerforations = (container) => {
         if (!container) return;
         container.innerHTML = '';
@@ -398,6 +401,7 @@ const { error: updateUserError } = await supabaseClient.auth.updateUser({
         }
     };
 
+    /// Medien rendern
     const renderMediaClips = () => {
         dom.mediaPage.filmStrip.innerHTML = '';
         state.currentMediaClips.forEach(clip => {
@@ -409,6 +413,7 @@ const { error: updateUserError } = await supabaseClient.auth.updateUser({
             dom.mediaPage.filmStrip.appendChild(slot);
         });
 
+        /// Leere Slots im Filmstreifen
         const emptySlotsCount = state.MAX_FRAMES - state.currentMediaClips.length;
         for (let i = 0; i < emptySlotsCount; i++) {
             const slot = document.createElement('div');
@@ -430,6 +435,7 @@ const { error: updateUserError } = await supabaseClient.auth.updateUser({
         dom.mediaPage.actionBtn.disabled = state.currentMediaClips.length === 0;
     };
 
+    /// Medien Vorschau Frame
     const createMediaFrame = (clip) => {
         const frame = document.createElement('div');
         frame.className = 'film-frame-item';
@@ -448,7 +454,7 @@ const { error: updateUserError } = await supabaseClient.auth.updateUser({
 // Autoren-Label hinzufügen, wenn ein Autor vorhanden ist
 let authorHtml = '';
 if (clip.author) {
-    // PRÜFUNG: Zeige das Avatar-Bild des aktuellen Nutzers, wenn es passt.
+    //Zeige das Avatar-Bild des aktuellen Nutzers, wenn es passt.
     if (clip.author === state.currentUser.name && state.currentUser.avatar) {
         authorHtml = `<img src="${state.currentUser.avatar}" class="author-tag is-avatar" title="Erstellt von ${clip.author}">`;
     } else {
@@ -458,7 +464,6 @@ if (clip.author) {
         authorHtml = `<div class="author-tag" style="background-color: ${color};" title="Erstellt von ${clip.author}">${initials}</div>`;
     }
 }
-
         frame.innerHTML = `
         <div class="w-full h-full relative">
             ${previewHtml}
@@ -477,18 +482,17 @@ if (clip.author) {
         return frame;
     };
 
+// Projekte anzeigen
  const renderAllProjects = () => {
         dom.projectsPage.container.innerHTML = '';
 
-        // ANFORDERUNG 1: Prüfen, ob Nutzer eingeloggt ist
+        // Prüfen, ob Nutzer eingeloggt ist
         if (!state.currentUser.id) {
             dom.projectsPage.container.innerHTML = `<p class="text-center text-gray-500">Bitte einloggen, um deine Projekte zu sehen.</p>`;
-            // Wir beenden die Funktion hier, da nichts gerendert werden soll.
-            // Die Karten-Marker werden separat in loadProjectsFromSupabase gerendert.
             return;
         }
 
-        // ANFORDERUNG 2: Nur eigene Projekte filtern
+        // Nur eigene Projekte filtern
         const myProjects = state.allProjects.filter(p => p.user_id === state.currentUser.id);
 
         if (myProjects.length === 0) {
@@ -498,13 +502,9 @@ if (clip.author) {
 
         // Nur die gefilterten Projekte rendern
         myProjects.forEach(p => dom.projectsPage.container.appendChild(createProjectCard(p)));
-        
-        // WICHTIG: renderProjectMarkers() wird hier entfernt,
-        // da diese Funktion alle Projekte auf der Karte anzeigen soll
-        // und bereits in loadProjectsFromSupabase() aufgerufen wird.
     };
 
-
+  // Projektkarte
     const createProjectCard = (project) => {
         const card = document.createElement('div');
         card.className = 'project-card flex flex-col items-stretch';
@@ -538,23 +538,19 @@ if (clip.author) {
                 return `<div class="${itemContainerClasses}">${previewElement}</div>`;
             }).join('');
 
-            // Der Hauptcontainer ist nun ein Flex-Container anstelle eines Scroll-Containers.
             mediaPreviewsHTML = `
             <div class="media-previews-container cursor-pointer w-full h-32 flex bg-gray-100">
                 ${mediaItemsHTML}
             </div>`;
         } else {
-            // Der Platzhalter bleibt unverändert.
             mediaPreviewsHTML = `
             <div class="w-full h-32 flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
                 Keine Medien vorhanden
             </div>`;
         }
-
-        // HTML-Struktur für die Karte
+        // HTML-Struktur für die Karte - Buttons in der Projektkarte
         card.innerHTML = `
         ${mediaPreviewsHTML}
-
         <div class="p-4 flex-grow flex flex-col">
             <h4 class="title font-bold text-lg text-gray-800 mb-2">${project.title}</h4>
             <p class="text-sm text-gray-600 mb-3 flex-grow">${project.description.substring(0, 80)}${project.description.length > 80 ? '...' : ''}</p>
@@ -597,7 +593,7 @@ if (clip.author) {
         </div>
     `;
 
-        // Event-Listener für die neuen Elemente zuweisen
+        // Event-Listener für die neuen Elemente
         const mediaContainer = card.querySelector('.media-previews-container');
         if (mediaContainer) {
             mediaContainer.addEventListener('click', () => openPlayback(project.media));
@@ -621,7 +617,7 @@ if (clip.author) {
                     return; // Abbrechen, wenn ein Fehler auftritt
                 }
 
-                       // 2. NEU: Marker von der Karte entfernen
+                       // 2. Marker von der Karte entfernen
                 if (state.maps.main) {
                     const markerIndex = state.maps.projectMarkers.findIndex(m => m.projectId === project.id);
                     if (markerIndex > -1) {
@@ -656,7 +652,6 @@ if (clip.author) {
         const projectId = state.currentlyEditingProjectId;
         if (!projectId) return;
 
-        // Funktion ist jetzt async und spricht mit Supabase
         showToast("Speichere Änderungen...");
 
         // 1. Alle alten Clips für dieses Projekt löschen
@@ -671,14 +666,14 @@ if (clip.author) {
             return;
         }
 
-        // 2. Alle aktuellen Clips als neue Clips einfügen (falls vorhanden)
+        // 2. Alle aktuellen Clips als neue Clips einfügen
         if (state.currentMediaClips.length > 0) {
             const clipsToInsert = state.currentMediaClips.map((clip, index) => ({
                 project_id: projectId,
-                file_path: clip.path,      // (Wird jetzt dank Änderung 3 mitgeladen)
+                file_path: clip.path,     
                 type: clip.type,
-                user_id: clip.user_id,     // (Wird jetzt dank Änderung 3 mitgeladen)
-                author_name: clip.author,    // <--- KORREKTUR (liest von clip.author)
+                user_id: clip.user_id,
+                author_name: clip.author,
                 sort_order: index
             }));
 
@@ -693,10 +688,10 @@ if (clip.author) {
             }
         }
         
-        // 3. Lokalen State (allProjects) aktualisieren (wie bisher)
+        // 3. Lokalen State (allProjects) aktualisieren
         const projectIndex = state.allProjects.findIndex(p => p.id === projectId);
         if (projectIndex > -1) {
-            // Aktualisiere die Medien im lokalen State, um die neuen/geänderten Daten widerzuspiegeln
+            // Aktualisiere die Medien im lokalen State, um die neuen/geänderten Daten zu entsprechen
             state.allProjects[projectIndex].media = state.currentMediaClips;
             
             if (state.currentMediaClips.length > 0) {
@@ -742,10 +737,10 @@ if (clip.author) {
 
         const isHidden = descriptionDiv.style.display === 'none';
 
-        // SVG-Icon für "Zuklappen" (Chevron nach oben)
+        // SVG-Icon für "Zuklappen" 
         const chevronUp = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>';
 
-        // SVG-Icon für "Aufklappen" (Chevron nach unten)
+        // SVG-Icon für "Aufklappen" 
         const chevronDown = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>';
 
         if (isHidden) {
@@ -757,6 +752,7 @@ if (clip.author) {
         }
     }
 
+     // Marker rendern 
     const renderProjectMarkers = () => {
         if (!state.maps.main) return;
         // Bisherige Marker von der Karte entfernen
@@ -834,11 +830,10 @@ if (clip.author) {
             </div>
         </div>
         <div class="px-3 pb-2 pt-2 border-t border-gray-100 flex justify-end items-center">
-
     ${project.mode === 'together'
                     ? `<button class="popup-btn popup-btn-solo" onclick="viewProjectById(${project.id})">Ansehen</button>
                        <button class="popup-btn popup-btn-collab" onclick="handleJoinProject(${project.id})">Mitmachen!</button>`
-                    : `<button class="popup-btn popup-btn-solo" onclick="viewProjectById(${project.id})">Ansehen</button>`
+                    : `<button class="popup-btn popup-btn-solo" onclick="viewProjectById(${project.id})">Ansehen</button>` 
                 }
         </div>
     </div>`;
@@ -851,10 +846,10 @@ if (clip.author) {
 
     // Die Funktion für den "Mitmachen"-Button
     const handleJoinProject = (projectId) => {
-        // NEU: Prüfen, ob der Nutzer eingeloggt ist
+        // Prüfen, ob der Nutzer eingeloggt ist
         if (!state.currentUser.id) {
             showToast("Bitte einloggen, um bei einem Projekt mitzumachen.");
-            return; // Funktion hier abbrechen
+            return; 
         }
     
         if (state.maps.main) {
@@ -867,15 +862,15 @@ if (clip.author) {
         }
     };
 
-    // ==== JS MODIFICATION HELPER FUNCTION ====
+    // Modi Update
     const updateModeSelection = (selectedMode) => {
         dom.projectModal.modeValue.value = selectedMode;
         dom.projectModal.modeContainer.querySelectorAll('button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.mode === selectedMode);
         });
     };
-    // ==== END JS MODIFICATION ====
 
+    // Project Modal öffnen
     const openProjectModal = (project = null) => {
         const isEditing = project !== null;
         dom.projectModal.title.textContent = isEditing ? "Projekt bearbeiten" : "Neues Projekt erstellen";
@@ -885,26 +880,23 @@ if (clip.author) {
         dom.projectModal.locationInput.value = isEditing ? project.address || '' : '';
         state.maps.currentPinLocation = isEditing ? project.location : null;
 
-        // ==== JS MODIFICATION ====
         const mode = isEditing ? project.mode : 'single';
         updateModeSelection(mode);
-        // ==== END JS MODIFICATION ====
-
         switchModalTab('details');
         toggleModal(dom.projectModal.modal, true);
     };
 
-   // in main.js
+// Modal wechseln
 const switchModalTab = (tabName) => {
     const isDetails = tabName === 'details';
 
-    // Tab-Buttons und Inhalte umschalten (wie bisher)
+    // Tab-Buttons und Inhalte umschalten 
     dom.projectModal.tabDetails.classList.toggle('active', isDetails);
     dom.projectModal.tabLocation.classList.toggle('active', !isDetails);
     dom.projectModal.contentDetails.classList.toggle('hidden', !isDetails);
     dom.projectModal.contentLocation.classList.toggle('hidden', isDetails);
 
-    // NEU: Sichtbarkeit der Navigations-Buttons steuern
+    // Sichtbarkeit der Navigations-Buttons steuern
     dom.projectModal.nextBtn.classList.toggle('hidden', !isDetails);   // Zeige "Weiter" nur bei Details
     dom.projectModal.backBtn.classList.toggle('hidden', isDetails);    // Zeige "Zurück" nur bei Ort
     dom.projectModal.confirmBtn.classList.toggle('hidden', isDetails); // Zeige "Speichern" nur bei Ort
@@ -924,6 +916,7 @@ const switchModalTab = (tabName) => {
     }
 };
 
+// Pin im Modal updaten
     const updateModalPin = (latlng, fromClick = false) => {
         state.maps.currentPinLocation = { lat: latlng.lat, lng: latlng.lng };
         if (!state.maps.modalMarker) {
@@ -985,7 +978,7 @@ const getDominantColor = (mediaElement) => {
             let dominantColor = null;
             let maxSaturation = -1;
 
-            for (let i = 0; i < data.length; i += 4 * 10) { // Wir prüfen jeden 10. Pixel
+            for (let i = 0; i < data.length; i += 4 * 10) { // jeden 10. Pixel prüfen
                 const r = data[i];
                 const g = data[i + 1];
                 const b = data[i + 2];
@@ -1015,6 +1008,7 @@ const getDominantColor = (mediaElement) => {
     });
 };
 
+// Audios Visualisieren
 const createAudioVisualizer = (audioElement, container) => {
     const canvas = document.createElement('canvas');
     container.appendChild(canvas);
@@ -1052,7 +1046,6 @@ const createAudioVisualizer = (audioElement, container) => {
         if (!state.playback.isPlaying || audioElement.paused) {
              return; // Stoppt die Animation, wenn die Wiedergabe pausiert oder beendet wird
         }
-
         requestAnimationFrame(renderFrame);
         x = 0;
         analyser.getByteFrequencyData(dataArray);
@@ -1076,13 +1069,14 @@ const createAudioVisualizer = (audioElement, container) => {
     };
     
     audioElement.onplay = () => {
-        state.playback.audioContext.resume(); // Wichtig für Browser
+        state.playback.audioContext.resume(); 
         renderFrame();
     };
 
     return canvas; // Gibt das Canvas-Element zurück
 };
 
+// Wiedergabe starten
     const openPlayback = (mediaItems) => {
         if (!mediaItems || mediaItems.length === 0) return;
 
@@ -1115,16 +1109,17 @@ const createAudioVisualizer = (audioElement, container) => {
     };
 
 
+// Wiedergabe schließen
 const closePlayback = () => {
         clearTimeout(state.playback.timeout);
-        stopAndResetAmbilight(); // <<< NEU: Stellt sicher, dass alles sauber beendet wird.
+        stopAndResetAmbilight(); // Stellt sicher, dass alles sauber beendet wird.
 
-            // NEU: Audio Context explizit schließen
+            // Audio Context explizit schließen
     if (state.playback.audioContext && state.playback.audioContext.state !== 'closed') {
         state.playback.audioContext.close();
     }
 
-        // NEU: Audio-Properties im State zurücksetzen
+        // Audio-Properties im State zurücksetzen
         state.playback = { ...state.playback, isPlaying: false, audioContext: null, audioSource: null };
 
         const { modal, filmIntro, mediaContainer } = dom.playbackModal;
@@ -1144,7 +1139,7 @@ const closePlayback = () => {
         state.playback.audioContext = null;
     }
 
-        // NEU: Stoppt zuverlässig vorherige Medien
+        // stop vorherige Medien
         dom.playbackModal.mediaContainer.innerHTML = ''; 
 
         const item = state.playback.items[state.playback.currentIndex];
@@ -1154,7 +1149,7 @@ const closePlayback = () => {
         if (item.type.startsWith('image')) {
             element = document.createElement('img');
 
-            /// Diese Zeile verhindert Sicherheitsfehler beim Canvas
+            /// Sicherheitsfehler beim Canvas verhindern
             element.crossOrigin = 'anonymous';
             // Ambilight für Bilder: Farbe einmalig nach dem Laden ermitteln
             element.onload = () => {
@@ -1184,10 +1179,10 @@ const closePlayback = () => {
         element.autoplay = true;
         element.onended = playNext;
         
-        // NEU: Ruft den Audio-Visualizer auf
+        // Ruft den Audio-Visualizer auf
         visualElement = createAudioVisualizer(element, container);
         
-        // NEU: Ambilight reagiert jetzt auf den Visualizer
+        // Ambilight reagiert jetzt auf den Visualizer
         state.playback.ambilightInterval = setInterval(() => {
              if (element && !element.paused) {
                   getDominantColor(visualElement).then(color => applyAmbilight(color, 0.5));
@@ -1229,6 +1224,7 @@ const closePlayback = () => {
         ).join('');
     };
 
+// Projekte speichern
 const handleSaveProject = async () => {
     const title = dom.projectModal.projectTitle.value.trim();
     if (!title) return showToast("Bitte gib einen Projekttitel an.");
@@ -1250,7 +1246,6 @@ const handleSaveProject = async () => {
     };
 
     if (editingId) {
-        // ---- UPDATE LOGIK (für später) ----
         const { error } = await supabaseClient.from('projects').update(projectData).eq('id', editingId);
         if (error) {
             console.error('Fehler beim Aktualisieren:', error);
@@ -1258,10 +1253,10 @@ const handleSaveProject = async () => {
             return;
         }
     } else {
-        // ---- NEUES PROJEKT ERSTELLEN ----
+        // NEUES PROJEKT ERSTELLEN
         if (state.currentMediaClips.length === 0) return alert("Bitte füge mindestens einen Clip hinzu.");
 
-        // 1. Projekt in 'projects' Tabelle einfügen
+        // Projekt in projects Tabelle einfügen
         const { data: newProject, error: projectError } = await supabaseClient
             .from('projects')
             .insert(projectData)
@@ -1274,7 +1269,7 @@ const handleSaveProject = async () => {
             return;
         }
 
-        // 2. Mediendaten für die 'media_clips' Tabelle vorbereiten
+        // Mediendaten für die 'media_clips' Tabelle vorbereiten
         const clipsToInsert = state.currentMediaClips.map((clip, index) => ({
             project_id: newProject.id, // Die ID des gerade erstellten Projekts
             file_path: clip.path,      // Der private Pfad aus dem Storage-Upload
@@ -1284,28 +1279,26 @@ const handleSaveProject = async () => {
             sort_order: index          // Reihenfolge speichern
         }));
 
-        // 3. Alle Clips auf einmal in die 'media_clips' Tabelle einfügen
+        // Alle Clips auf einmal in die 'media_clips' Tabelle einfügen
         const { error: clipsError } = await supabaseClient.from('media_clips').insert(clipsToInsert);
 
         if (clipsError) {
             console.error('Fehler beim Speichern der Medien:', clipsError);
-            // Hier könntest du das gerade erstellte Projekt wieder löschen, um Datenmüll zu vermeiden
             await supabaseClient.from('projects').delete().eq('id', newProject.id);
             showToast("Medien konnten nicht gespeichert werden.");
             return;
         }
-
         resetMediaPage();
     }
 
     showToast("Projekt erfolgreich gespeichert!");
-    await loadProjectsFromSupabase(); // Neu laden, um alles anzuzeigen (updated Projekte & Marker)
+    await loadProjectsFromSupabase(); // Neu laden, um alles anzuzeigen
     toggleModal(dom.projectModal.modal, false);
-    
     // Wechsle direkt zur Kartenseite
     switchPage('map-page');
 };
 
+/// Authentifizierung
 const updateAuthForm = () => {
     const isLogin = state.authMode === 'login';
 
@@ -1386,21 +1379,19 @@ dom.auth.form.addEventListener('submit', async (e) => {
         toggleModal(dom.auth.modal, false);
         updateUserUI(data.user); // UI und state.currentUser aktualisieren
         
-        // 1. Lade ALLE Projekte neu, jetzt da der Nutzer eingeloggt ist
+        // Lade ALLE Projekte neu
         await loadProjectsFromSupabase(); 
         
-        // 2. Zeige dem Nutzer direkt seine Projektseite
-        // (renderAllProjects wird automatisch von loadProjectsFromSupabase aufgerufen)
+        // Zeige dem Nutzer direkt seine Projektseite
         switchPage('media-page');
         resetMediaPage();
         showToast(state.authMode === 'login' ? 'Erfolgreich eingeloggt.' : 'Konto erfolgreich erstellt!');
-    }
-    
+    }   
     dom.auth.submitBtn.disabled = false;
     updateAuthForm();
 });
 
-        dom.mediaPage.addMediaFrame.addEventListener('click', () => dom.mediaPage.mediaUploadInput.click());
+    dom.mediaPage.addMediaFrame.addEventListener('click', () => dom.mediaPage.mediaUploadInput.click());
     dom.mediaPage.mediaUploadInput.addEventListener('change', async (event) => {
     const files = Array.from(event.target.files);
     const availableSlots = state.MAX_FRAMES - state.currentMediaClips.length;
@@ -1517,7 +1508,7 @@ dom.auth.form.addEventListener('submit', async (e) => {
             }
         });
 
-        dom.projectModal.useMyLocationBtn.addEventListener('click', () => {
+    dom.projectModal.useMyLocationBtn.addEventListener('click', () => {
     showToast("Standort wird ermittelt...");
     requestUserLocation((position) => {
         const userLatLng = {
@@ -1564,7 +1555,6 @@ dom.profileModal.uploadBtn.addEventListener('click', () => dom.profileModal.uplo
 dom.profileModal.uploadInput.addEventListener('change', handleAvatarUpload);
 dom.profileModal.deleteBtn.addEventListener('click', handleAvatarDelete); 
 
-// HINZUGEFÜGT
 dom.welcomeModal.closeBtn.addEventListener('click', () => {
     localStorage.setItem('hasSeenWelcomeModal', 'true');
     dom.welcomeModal.modal.classList.remove('visible');
@@ -1581,7 +1571,6 @@ const checkUser = async () => {
     const hasSeenWelcome = localStorage.getItem('hasSeenWelcomeModal');
     if (!session && !hasSeenWelcome) {
         setTimeout(() => {
-            // Überprüfen, ob das Element existiert, bevor darauf zugegriffen wird
             if (dom.welcomeModal.modal) { 
                 dom.welcomeModal.modal.classList.remove('hidden');
                 setTimeout(() => {
@@ -1625,14 +1614,12 @@ const updateUserUI = (user) => {
 };
 
 
-const init = async () => { // Mache die Funktion async
+const init = async () => { 
     setupEventListeners();
     resetMediaPage();
-    
     await checkUser();
     await loadProjectsFromSupabase(); // Projekte aus Supabase laden
     
-    // Prüfe, ob eine Seite nach dem Neuladen (z.B. Logout) geöffnet werden soll
     const openPage = sessionStorage.getItem('openPageAfterReload') || 'media-page';
     sessionStorage.removeItem('openPageAfterReload'); // Flag direkt wieder löschen
     
@@ -1684,7 +1671,7 @@ const loadProjectsFromSupabase = async () => {
         return;
     }
 
-    // Daten in das Format umwandeln, das deine App erwartet
+    // Daten in das Format umwandeln, das die App erwartet
     state.allProjects = data.map(project => {
         const media = project.media_clips
             .sort((a, b) => a.sort_order - b.sort_order) // Sortieren sicherstellen
