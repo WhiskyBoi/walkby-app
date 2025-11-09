@@ -29,11 +29,9 @@ self.addEventListener('install', (event) => {
 });
 
 // Event 2: Fetch (Netzwerkanfragen)
-// KORRIGIERTE LOGIK: Unterscheidet zwischen App Shell und API-Anfragen
 self.addEventListener('fetch', (event) => {
   
-  // 1. Prüfen, ob die URL im APP_SHELL_FILES-Array enthalten ist
-  // Wir müssen die URL-Pfade abgleichen
+  // 1. Prüfen, ob die URL im APP_SHELL_FILES-Array enthalten ist; URL-Pfade abgleichen
   const requestUrl = new URL(event.request.url);
   const isAppShellUrl = APP_SHELL_FILES.includes(requestUrl.pathname) || 
                         APP_SHELL_FILES.includes(requestUrl.href);
@@ -51,9 +49,7 @@ self.addEventListener('fetch', (event) => {
         })
     );
   } else {
-    // 3. WENN es KEINE App-Shell-Datei ist (z.B. API-Call an Supabase, Bilder-Uploads)
-    //    -> "Network-Only"-Strategie. 
-    //    Wir leiten die Anfrage einfach ans Netzwerk weiter.
+    // 3. WENN es KEINE App-Shell-Datei ist (z.B. API-Call an Supabase, Bilder-Uploads) -> "Network-Only"-Strategie, die Anfrage einfach ans Netzwerk weiter.   
     event.respondWith(fetch(event.request));
   }
 });

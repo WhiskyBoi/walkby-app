@@ -11,7 +11,6 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
 
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,15 +23,16 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body class="h-full flex items-center justify-center p-0 md:p-4 bg-gray-100"> 
+<body class="h-full flex items-center justify-center p-0 md:p-4 bg-gray-100">
 
     <div
         class="container relative w-full h-full md:max-w-lg lg:max-w-xl bg-surface-container-low shadow-lg md:rounded-2xl overflow-hidden flex flex-col">
         <header class="header-fixed z-20 p-4 flex-shrink-0 bg-surface-container-low">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-4">
-                    <img src="anime-chibi.png" alt="WalkBy Logo - Chibi mit Kamera" class="w-14 h-14 rounded-full object-cover shadow-sm p-1 bg-amber-100" />
-                        
+                    <img src="anime-chibi.png" alt="WalkBy Logo - Chibi mit Kamera"
+                        class="w-14 h-14 rounded-full object-cover shadow-sm p-1 bg-amber-100" />
+
                     <div>
                         <h1 class="font-playfair text-3xl font-bold text-on-surface">WalkBy</h1>
                         <p class="font-poppins text-sm text-on-surface-variant opacity-90">Deine Geschichte, deine
@@ -40,302 +40,356 @@
                     </div>
                 </div>
                 <div id="user-profile-display" class="flex items-center gap-4">
-                    <button id="login-btn" class="btn-primary px-4 py-2 text-sm font-semibold rounded-lg shadow-md">Login</button>
-                    <div id="user-avatar" class="hidden w-12 h-12 bg-red-500 text-white flex items-center justify-center rounded-full text-xl font-bold cursor-pointer"></div>
-                    <button id="logout-btn" class="btn-secondary hidden px-4 py-2 text-sm font-semibold rounded-lg shadow-md">Logout</button>
+                    <button id="login-btn"
+                        class="btn-primary px-4 py-2 text-sm font-semibold rounded-lg shadow-md">Login</button>
+                    <div id="user-avatar"
+                        class="hidden w-12 h-12 bg-red-500 text-white flex items-center justify-center rounded-full text-xl font-bold cursor-pointer">
+                    </div>
+                    <button id="logout-btn"
+                        class="btn-secondary hidden px-4 py-2 text-sm font-semibold rounded-lg shadow-md">Logout</button>
                 </div>
             </div>
         </header>
 
         <main class="flex-grow overflow-auto relative">
 
-           <! --  Medien Seite -->
-            <section id="media-page" class="page flex-col h-full w-full p-4">
-                <h2 class="text-2xl font-bold text-gray-800 text-center mt-16" id="media-page-title">Neues Projekt</h2>
-                <div id="media-counter" class="text-center text-gray-500 font-medium mt-4">0/5 Medien</div>
-                <div class="flex-grow flex flex-col justify-start items-center gap-12 mt-12">
-                    <div class="film-reel-container w-full">
-                        <div class="film-reel-media-strip rounded-lg relative flex flex-col overflow-hidden">
-                            <div class="film-strip-top-perforations h-5 flex items-center justify-around"></div>
-                            <div id="film-strip-content-wrapper" class="film-strip-content-wrapper flex-grow">
-                                <div id="film-strip-content" class="flex"></div>
-                            </div>
-                            <div class="film-strip-bottom-perforations h-5 flex items-center justify-around"></div>
-                            <div id="add-media-frame"
-                                class="add-frame-item border-2 border-dashed rounded-lg flex-col items-center justify-center cursor-pointer hidden">
-                                <input type="file" id="mediaUploadInput" class="hidden" multiple
-                                    accept="image/*,video/*,audio/*" />
-                                <div class="text-3xl">+</div>
-                                <div class="text-xs text-center text-gray-500">Hinzufügen</div>
+            <! -- Medien Seite -->
+                <section id="media-page" class="page flex-col h-full w-full p-4">
+                    <h2 class="text-2xl font-bold text-gray-800 text-center mt-16" id="media-page-title">Neues Projekt
+                    </h2>
+                    <div id="media-counter" class="text-center text-gray-500 font-medium mt-4">0/5 Medien</div>
+                    <div class="flex-grow flex flex-col justify-start items-center gap-12 mt-12">
+                        <div class="film-reel-container w-full">
+                            <div class="film-reel-media-strip rounded-lg relative flex flex-col overflow-hidden">
+                                <div class="film-strip-top-perforations h-5 flex items-center justify-around"></div>
+                                <div id="film-strip-content-wrapper" class="film-strip-content-wrapper flex-grow">
+                                    <div id="film-strip-content" class="flex"></div>
+                                </div>
+                                <div class="film-strip-bottom-perforations h-5 flex items-center justify-around"></div>
+                                <div id="add-media-frame"
+                                    class="add-frame-item border-2 border-dashed rounded-lg flex-col items-center justify-center cursor-pointer hidden">
+                                    <input type="file" id="mediaUploadInput" class="hidden" multiple
+                                        accept="image/*,video/*,audio/*" />
+                                    <div class="text-3xl">+</div>
+                                    <div class="text-xs text-center text-gray-500">Hinzufügen</div>
+                                </div>
                             </div>
                         </div>
+                        <button id="media-page-action-btn" class="media-page-action-btn">Projekt erstellen</button>
                     </div>
-                    <button id="media-page-action-btn" class="media-page-action-btn">Projekt erstellen</button>
-                </div>
-            </section>
+                </section>
 
-            <! --  Karte Seite -->
-            <section id="map-page" class="page flex-col h-full w-full p-4">
-                <div class="flex-shrink-0">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Entdecke Geschichten</h2>
-                    <p class="text-sm text-gray-600 mb-4">Finde Projekte von anderen in deiner Umgebung.</p>
-                </div>
-                <div class="map-container-frame rounded-lg shadow-md relative flex-grow">
-                    <div id="map"></div>
-                </div>
-            </section>
+                <! -- Karte Seite -->
+                    <section id="map-page" class="page flex-col h-full w-full p-4">
+                        <div class="flex-shrink-0">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">Entdecke Geschichten</h2>
+                            <p class="text-sm text-gray-600 mb-4">Finde Projekte von anderen in deiner Umgebung.</p>
+                        </div>
+                        <div class="map-container-frame rounded-lg shadow-md relative flex-grow">
+                            <div id="map"></div>
+                        </div>
+                    </section>
 
-            <! --  Projekt Seite -->
-            <section id="projects-page" class="page flex-col h-full w-full p-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold text-gray-800">Meine Projekte</h2>
-                    <button id="add-new-project-btn"
-                        class="btn-primary px-4 py-2 rounded-lg shadow-md text-sm font-semibold flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        Neu
-                    </button>
-                </div>
-                <div id="projects-list-container" class="space-y-3 overflow-y-auto"></div>
-            </section>
+                    <! -- Projekt Seite -->
+                        <section id="projects-page" class="page flex-col h-full w-full p-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-2xl font-bold text-gray-800">Meine Projekte</h2>
+                                <button id="add-new-project-btn"
+                                    class="btn-primary px-4 py-2 rounded-lg shadow-md text-sm font-semibold flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                        fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    Neu
+                                </button>
+                            </div>
+                            <div id="projects-list-container" class="space-y-3 overflow-y-auto"></div>
+                        </section>
         </main>
 
-        <! --  Navigation -->
-        <nav class="floating-nav-container w-auto bg-white/80 backdrop-blur-sm rounded-full shadow-lg p-2 flex gap-2">
-            <button id="nav-media" class="floating-nav-item flex flex-col items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
-                  <path fill-rule="evenodd" d="M3.75 3.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4.5a.75.75 0 01-.75-.75v-4.5zM3.75 12.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4.5a.75.75 0 01-.75-.75v-4.5zM12.75 3.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4.5a.75.75 0 01-.75-.75v-4.5zM12.75 12.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4.5a.75.75 0 01-.75-.75v-4.5z" clip-rule="evenodd" />
-                </svg>
-                <span class="nav-label text-xs mt-1">Medien</span>
-            </button>
-            <button id="nav-map" class="floating-nav-item flex flex-col items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
-                    <path fill-rule="evenodd" d="M12 2.25c-2.485 0-4.5 2.015-4.5 4.5s4.5 11.25 4.5 11.25s4.5-8.765 4.5-11.25s-2.015-4.5-4.5-4.5zm0 6.75a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clip-rule="evenodd" />
-                </svg>
-                <span class="nav-label text-xs mt-1">Karte</span>
-            </button>
-            <button id="nav-projects" class="floating-nav-item flex flex-col items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
-                  <path d="M19.5 21a3 3 0 0 0 3-3V9a3 3 0 0 0-3-3h-5.379a.75.75 0 0 1-.53-.22L11.84 3.97A3 3 0 0 0 9.707 3H4.5A3 3 0 0 0 1.5 6v12a3 3 0 0 0 3 3h15Z" />
-                </svg>
-                <span class="nav-label text-xs mt-1">Projekte</span>
-            </button>
-        </nav>
+        <! -- Navigation -->
+            <nav
+                class="floating-nav-container w-auto bg-white/80 backdrop-blur-sm rounded-full shadow-lg p-2 flex gap-2">
+                <button id="nav-media" class="floating-nav-item flex flex-col items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
+                        <path fill-rule="evenodd"
+                            d="M3.75 3.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4.5a.75.75 0 01-.75-.75v-4.5zM3.75 12.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4.5a.75.75 0 01-.75-.75v-4.5zM12.75 3.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4.5a.75.75 0 01-.75-.75v-4.5zM12.75 12.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-4.5a.75.75 0 01-.75-.75v-4.5z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="nav-label text-xs mt-1">Medien</span>
+                </button>
+                <button id="nav-map" class="floating-nav-item flex flex-col items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
+                        <path fill-rule="evenodd"
+                            d="M12 2.25c-2.485 0-4.5 2.015-4.5 4.5s4.5 11.25 4.5 11.25s4.5-8.765 4.5-11.25s-2.015-4.5-4.5-4.5zm0 6.75a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <span class="nav-label text-xs mt-1">Karte</span>
+                </button>
+                <button id="nav-projects" class="floating-nav-item flex flex-col items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
+                        <path
+                            d="M19.5 21a3 3 0 0 0 3-3V9a3 3 0 0 0-3-3h-5.379a.75.75 0 0 1-.53-.22L11.84 3.97A3 3 0 0 0 9.707 3H4.5A3 3 0 0 0 1.5 6v12a3 3 0 0 0 3 3h15Z" />
+                    </svg>
+                    <span class="nav-label text-xs mt-1">Projekte</span>
+                </button>
+            </nav>
     </div>
 
+    <! -- Willkommen Modal -->
         <template id="template-welcome-modal">
-        <div id="welcome-modal" class="modal fixed inset-0 bg-black bg-opacity-70 z-[100] flex items-center justify-center hidden opacity-0 p-4 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center relative transform scale-95 transition-all duration-300">
-            <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-amber-300 p-3 rounded-full shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"></path><path d="M13 7h-2v6h2V7zm0 8h-2v2h2v-2z"></path></svg>
-            </div>
-            <h3 class="text-2xl font-bold text-gray-800 mt-8">Willkommen bei WalkBy!</h3>
-            <p class="text-gray-600 mt-2">
-                Erstelle multimediale Geschichten an echten Orten. Lade Bilder, Videos oder Audios hoch und teile deine Entdeckungen mit anderen.
-            </p>
-            <p class="text-xs text-gray-400 mt-4">Vielen Dank, dass du die Anwendung nutzt!</p>
-            <button id="close-welcome-modal" class="btn-primary mt-6 w-full py-2 px-4 text-sm font-medium rounded-lg">
-                Los geht's!
-            </button>
-        </div>
-    </div>
-    </template>
-
-    <! --  Projekterstellung Modal -->
-    <template id="template-project-modal">
-    <div id="create-project-modal"
-        class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
-            <h3 id="modal-title" class="text-xl font-bold text-gray-800">Projekt erstellen</h3>
-            <div class="border-b border-gray-200">
-                <nav class="flex gap-4 -mb-px">
-                    <button id="modal-tab-details"
-                        class="modal-tab-btn py-2 px-4 font-semibold border-b-2 border-transparent">Details</button>
-                    <button id="modal-tab-location"
-                        class="modal-tab-btn py-2 px-4 font-semibold border-b-2 border-transparent">Ort</button>
-                </nav>
-            </div>
-            <div id="modal-content-details">
-                <input type="hidden" id="project-id">
-                <div class="space-y-4">
-                    <div>
-                        <label for="project-title" class="block text-sm font-medium text-gray-700">Projekttitel</label>
-                        <input type="text" id="project-title"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            <div id="welcome-modal"
+                class="modal fixed inset-0 bg-black bg-opacity-70 z-[100] flex items-center justify-center hidden opacity-0 p-4 transition-opacity duration-300">
+                <div
+                    class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center relative transform scale-95 transition-all duration-300">
+                    <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-amber-300 p-3 rounded-full shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path
+                                d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z">
+                            </path>
+                            <path d="M13 7h-2v6h2V7zm0 8h-2v2h2v-2z"></path>
+                        </svg>
                     </div>
-                    <div>
-                        <label for="project-description"
-                            class="block text-sm font-medium text-gray-700">Beschreibung</label>
-                        <textarea id="project-description" rows="3"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Modus</label>
-                        <input type="hidden" id="project-mode-value" value="single">
-                        <div id="project-mode-container" class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <button type="button" data-mode="single"
-                                class="mode-selector-btn text-left p-3 border border-gray-300 rounded-lg transition-all flex items-center gap-3 cursor-pointer">
-                                <span
-                                    class="radio-dot w-5 h-5 rounded-full border-2 border-gray-400 flex items-center justify-center flex-shrink-0">
-                                    <span class="inner-dot w-2.5 h-2.5 rounded-full"></span>
-                                </span>
-                                <div>
-                                    <span class="font-semibold block text-gray-800">Broadcast Yourself!</span>
-                                    <span class="text-xs text-gray-500">Dein Projekt, allein erstellt.</span>
-                                </div>
-                            </button>
-                            <button type="button" data-mode="together"
-                                class="mode-selector-btn text-left p-3 border border-gray-300 rounded-lg transition-all flex items-center gap-3 cursor-pointer">
-                                <span
-                                    class="radio-dot w-5 h-5 rounded-full border-2 border-gray-400 flex items-center justify-center flex-shrink-0">
-                                    <span class="inner-dot w-2.5 h-2.5 rounded-full"></span>
-                                </span>
-                                <div>
-                                    <span class="font-semibold block text-gray-800">Collaboration!</span>
-                                    <span class="text-xs text-gray-500">Für andere zum Mitmachen.</span>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-8">Willkommen bei WalkBy!</h3>
+                    <p class="text-gray-600 mt-2">
+                        Erstelle multimediale Geschichten an echten Orten. Lade Bilder, Videos oder Audios hoch und
+                        teile deine Entdeckungen mit anderen.
+                    </p>
+                    <p class="text-xs text-gray-400 mt-4">Vielen Dank, dass du die Anwendung nutzt!</p>
+                    <button id="close-welcome-modal"
+                        class="btn-primary mt-6 w-full py-2 px-4 text-sm font-medium rounded-lg">
+                        Los geht's!
+                    </button>
                 </div>
             </div>
-            
-            <div id="modal-content-location" class="hidden space-y-3">
-                <div>
-                    <label for="project-location-input" class="block text-sm font-medium text-gray-700">Adresse
-                        suchen</label>
-                    <div class="flex gap-2 mt-1">
-                        <input type="text" id="project-location-input"
-                            class="flex-grow border border-gray-300 rounded-md shadow-sm py-2 px-3"
-                            placeholder="z.B. Jungfernstieg 1, Hamburg">
-                        <button id="location-search-btn"
-                            class="btn-primary px-3 py-2 text-sm font-medium rounded-lg">Suchen</button>
-                       <button id="use-my-location-btn" title="Meinen Standort verwenden" class="p-2 text-gray-500 hover:text-blue-600">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-        </svg>
-    </button>
+        </template>
+
+        <! -- Projekterstellung Modal -->
+            <template id="template-project-modal">
+                <div id="create-project-modal"
+                    class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
+                    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
+                        <h3 id="modal-title" class="text-xl font-bold text-gray-800">Projekt erstellen</h3>
+                        <div class="border-b border-gray-200">
+                            <nav class="flex gap-4 -mb-px">
+                                <button id="modal-tab-details"
+                                    class="modal-tab-btn py-2 px-4 font-semibold border-b-2 border-transparent">Details</button>
+                                <button id="modal-tab-location"
+                                    class="modal-tab-btn py-2 px-4 font-semibold border-b-2 border-transparent">Ort</button>
+                            </nav>
                         </div>
+                        <div id="modal-content-details">
+                            <input type="hidden" id="project-id">
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="project-title"
+                                        class="block text-sm font-medium text-gray-700">Projekttitel</label>
+                                    <input type="text" id="project-title"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                <div>
+                                    <label for="project-description"
+                                        class="block text-sm font-medium text-gray-700">Beschreibung</label>
+                                    <textarea id="project-description" rows="3"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Modus</label>
+                                    <input type="hidden" id="project-mode-value" value="single">
+                                    <div id="project-mode-container" class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <button type="button" data-mode="single"
+                                            class="mode-selector-btn text-left p-3 border border-gray-300 rounded-lg transition-all flex items-center gap-3 cursor-pointer">
+                                            <span
+                                                class="radio-dot w-5 h-5 rounded-full border-2 border-gray-400 flex items-center justify-center flex-shrink-0">
+                                                <span class="inner-dot w-2.5 h-2.5 rounded-full"></span>
+                                            </span>
+                                            <div>
+                                                <span class="font-semibold block text-gray-800">Broadcast
+                                                    Yourself!</span>
+                                                <span class="text-xs text-gray-500">Dein Projekt, allein
+                                                    erstellt.</span>
+                                            </div>
+                                        </button>
+                                        <button type="button" data-mode="together"
+                                            class="mode-selector-btn text-left p-3 border border-gray-300 rounded-lg transition-all flex items-center gap-3 cursor-pointer">
+                                            <span
+                                                class="radio-dot w-5 h-5 rounded-full border-2 border-gray-400 flex items-center justify-center flex-shrink-0">
+                                                <span class="inner-dot w-2.5 h-2.5 rounded-full"></span>
+                                            </span>
+                                            <div>
+                                                <span class="font-semibold block text-gray-800">Collaboration!</span>
+                                                <span class="text-xs text-gray-500">Für andere zum Mitmachen.</span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <! -- Ort Auswahl Modal -->
+                            <div id="modal-content-location" class="hidden space-y-3">
+                                <div>
+                                    <label for="project-location-input"
+                                        class="block text-sm font-medium text-gray-700">Adresse
+                                        suchen</label>
+                                    <div class="flex gap-2 mt-1">
+                                        <input type="text" id="project-location-input"
+                                            class="flex-grow border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                                            placeholder="z.B. Jungfernstieg 1, Hamburg">
+                                        <button id="location-search-btn"
+                                            class="btn-primary px-3 py-2 text-sm font-medium rounded-lg">Suchen</button>
+                                        <button id="use-my-location-btn" title="Meinen Standort verwenden"
+                                            class="p-2 text-gray-500 hover:text-blue-600">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                                fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="h-56 w-full rounded-lg shadow-md" id="modal-map"></div>
+                                <p class="text-xs text-center text-gray-500 -mt-2">Oder klicke auf die Karte, um den Ort
+                                    festzulegen.
+                                </p>
+                            </div>
+
+                            <div class="flex justify-end gap-4 pt-4 border-t">
+
+                                <button id="cancel-create-project"
+                                    class="btn-secondary px-4 py-2 text-sm font-medium rounded-lg">Abbrechen</button>
+
+                                <button id="modal-back-btn" type="button"
+                                    class="btn-secondary px-4 py-2 text-sm font-medium rounded-lg hidden">Zurück</button>
+
+                                <button id="modal-next-btn" type="button"
+                                    class="btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg">Weiter</button>
+
+                                <button id="confirm-create-project"
+                                    class="btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg hidden">Speichern</button>
+
+                            </div>
+                    </div>
                 </div>
-
-                <div class="h-56 w-full rounded-lg shadow-md" id="modal-map"></div>
-                <p class="text-xs text-center text-gray-500 -mt-2">Oder klicke auf die Karte, um den Ort festzulegen.
-                </p>
-            </div>
-
-           <div class="flex justify-end gap-4 pt-4 border-t">
-    
-    <button id="cancel-create-project" class="btn-secondary px-4 py-2 text-sm font-medium rounded-lg">Abbrechen</button>
-    
-    <button id="modal-back-btn" type="button" class="btn-secondary px-4 py-2 text-sm font-medium rounded-lg hidden">Zurück</button>
-
-    <button id="modal-next-btn" type="button" class="btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg">Weiter</button>
-
-    <button id="confirm-create-project" class="btn-primary inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg hidden">Speichern</button>
-    
-</div>
-        </div>
-    </div>
-    </template>
+            </template>
 
 
-    <! --  Authentifizierung Modal -->
-    <template id="template-auth-modal">
-    <div id="auth-modal" class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 space-y-4 relative">
-        <button id="close-auth-modal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
-        <h3 id="auth-modal-title" class="text-xl font-bold text-gray-800 text-center">Login</h3>
-        <form id="auth-form" class="space-y-4">
-            <div>
-                <label for="auth-username" class="block text-sm font-medium text-gray-700">Benutzername</label>
-                <input type="text" id="auth-username" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
-            </div>
-            <div>
-                <label for="auth-password" class="block text-sm font-medium text-gray-700">Passwort</label>
-                <input type="password" id="auth-password" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
-            </div>
-            <button type="submit" id="auth-submit-btn" class="btn-primary w-full py-2 px-4 text-sm font-medium rounded-lg">Einloggen</button>
-        </form>
-        <p class="text-center text-sm">
-            <span id="auth-switch-text">Noch kein Konto?</span>
-            <button id="auth-switch-btn" class="font-semibold hover:underline">Registrieren</button>
-        </p>
-    </div>
-</div>
-</template>
+            <! -- Authentifizierung Modal -->
+                <template id="template-auth-modal">
+                    <div id="auth-modal"
+                        class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
+                        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 space-y-4 relative">
+                            <button id="close-auth-modal"
+                                class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+                            <h3 id="auth-modal-title" class="text-xl font-bold text-gray-800 text-center">Login</h3>
+                            <form id="auth-form" class="space-y-4">
+                                <div>
+                                    <label for="auth-username"
+                                        class="block text-sm font-medium text-gray-700">Benutzername</label>
+                                    <input type="text" id="auth-username" required
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                                </div>
+                                <div>
+                                    <label for="auth-password"
+                                        class="block text-sm font-medium text-gray-700">Passwort</label>
+                                    <input type="password" id="auth-password" required
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                                </div>
+                                <button type="submit" id="auth-submit-btn"
+                                    class="btn-primary w-full py-2 px-4 text-sm font-medium rounded-lg">Einloggen</button>
+                            </form>
+                            <p class="text-center text-sm">
+                                <span id="auth-switch-text">Noch kein Konto?</span>
+                                <button id="auth-switch-btn" class="font-semibold hover:underline">Registrieren</button>
+                            </p>
+                        </div>
+                    </div>
+                </template>
 
-    <! --  Wiedergabe Modal -->
-    <template id="template-playback-modal">
-    <div id="playback-modal"
-        class="modal fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col items-center justify-center hidden opacity-0 p-16">
-        <div id="curtain-left" class="curtain left"></div>
-        <div id="curtain-right" class="curtain right"></div>
-        <div id="film-intro-overlay">
-            <div class="film-leader"></div>
-        </div>
-        <button id="playback-close-btn"
-            class="absolute top-4 right-4 text-white text-5xl font-bold z-20">&times;</button>
-        <div id="playback-media-container"
-            class="w-full h-full flex items-center justify-center relative overflow-hidden"></div>
-        <div id="playback-controls"
-            class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent text-white">
-            <div id="playback-progress-dots" class="flex justify-center gap-2 mb-4"></div>
-            <div class="flex justify-center items-center gap-6">
-                <button id="playback-prev-btn"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M8.447 13.94l-3.33-2.498a1 1 0 010-1.584l3.33-2.498a1 1 0 011.553.792v4.996a1 1 0 01-1.553.792zM12.599 13.94l-3.33-2.498a1 1 0 010-1.584l3.33-2.498a1 1 0 011.553.792v4.996a1 1 0 01-1.553.792z">
-                        </path>
-                    </svg></button>
-                <button id="playback-play-pause-btn"
-                    class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shadow-lg transition-transform hover:scale-110"></button>
-                <button id="playback-next-btn"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M11.553 6.06l3.33 2.498a1 1 0 010 1.584l-3.33 2.498a1 1 0 01-1.553-.792V6.852a1 1 0 011.553-.792zM7.401 6.06l3.33 2.498a1 1 0 010 1.584l-3.33 2.498a1 1 0 01-1.553-.792V6.852a1 1 0 011.553-.792z">
-                        </path>
-                    </svg></button>
-            </div>
-        </div>
-    </div>
-    </template>
+                <! -- Wiedergabe Modal -->
+                    <template id="template-playback-modal">
+                        <div id="playback-modal"
+                            class="modal fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col items-center justify-center hidden opacity-0 p-16">
+                            <div id="curtain-left" class="curtain left"></div>
+                            <div id="curtain-right" class="curtain right"></div>
+                            <div id="film-intro-overlay">
+                                <div class="film-leader"></div>
+                            </div>
+                            <button id="playback-close-btn"
+                                class="absolute top-4 right-4 text-white text-5xl font-bold z-20">&times;</button>
+                            <div id="playback-media-container"
+                                class="w-full h-full flex items-center justify-center relative overflow-hidden"></div>
+                            <div id="playback-controls"
+                                class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent text-white">
+                                <div id="playback-progress-dots" class="flex justify-center gap-2 mb-4"></div>
+                                <div class="flex justify-center items-center gap-6">
+                                    <button id="playback-prev-btn"><svg class="w-8 h-8" fill="currentColor"
+                                            viewBox="0 0 20 20">
+                                            <path
+                                                d="M8.447 13.94l-3.33-2.498a1 1 0 010-1.584l3.33-2.498a1 1 0 011.553.792v4.996a1 1 0 01-1.553.792zM12.599 13.94l-3.33-2.498a1 1 0 010-1.584l3.33-2.498a1 1 0 011.553.792v4.996a1 1 0 01-1.553.792z">
+                                            </path>
+                                        </svg></button>
+                                    <button id="playback-play-pause-btn"
+                                        class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shadow-lg transition-transform hover:scale-110"></button>
+                                    <button id="playback-next-btn"><svg class="w-8 h-8" fill="currentColor"
+                                            viewBox="0 0 20 20">
+                                            <path
+                                                d="M11.553 6.06l3.33 2.498a1 1 0 010 1.584l-3.33 2.498a1 1 0 01-1.553-.792V6.852a1 1 0 011.553-.792zM7.401 6.06l3.33 2.498a1 1 0 010 1.584l-3.33 2.498a1 1 0 01-1.553-.792V6.852a1 1 0 011.553-.792z">
+                                            </path>
+                                        </svg></button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
 
-    <! --  Toast Benachrichtigung -->
-    <div id="toast-notification"
-        class="fixed bottom-[-100px] left-1/2 -translate-x-1.2 -translate-x-1/2 bg-gray-800 text-white py-3 px-6 rounded-full shadow-lg transition-all duration-500 ease-in-out z-[100]">
-    </div>
+                    <! -- Toast Benachrichtigung -->
+                        <div id="toast-notification"
+                            class="fixed bottom-[-100px] left-1/2 -translate-x-1.2 -translate-x-1/2 bg-gray-800 text-white py-3 px-6 rounded-full shadow-lg transition-all duration-500 ease-in-out z-[100]">
+                        </div>
 
-    <! --  Profil Anzeige/Eingabe -->
-    <div id="profile-modal" class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 space-y-4">
-        <div class="flex justify-between items-center">
-            <h3 class="text-xl font-bold text-gray-800">Dein Profil</h3>
-            <button id="profile-modal-close" aria-label="Schließen" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
-        </div>
-        
-        <div class="flex flex-col items-center gap-4">
-            <h4 id="profile-username" class="text-lg font-semibold text-gray-700"></h4>
-            <img id="profile-image-preview" src="https://placehold.co/128x128/e0e0e0/777?text=Avatar" alt="Profilbild Vorschau" class="w-32 h-32 rounded-full object-cover bg-gray-200">
-            
-            <input type="file" id="avatar-upload-input" class="hidden" accept="image/png, image/jpeg">
-            <button id="avatar-upload-btn" class="btn-primary w-full py-2 px-4 text-sm font-medium rounded-lg">
-                Bild auswählen...
-            </button>
+                        <! -- Profil Anzeige/Eingabe -->
+                            <div id="profile-modal"
+                                class="modal fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden opacity-0 p-4">
+                                <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 space-y-4">
+                                    <div class="flex justify-between items-center">
+                                        <h3 class="text-xl font-bold text-gray-800">Dein Profil</h3>
+                                        <button id="profile-modal-close" aria-label="Schließen"
+                                            class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+                                    </div>
 
-            <button id="avatar-delete-btn" class="text-sm text-red-600 hover:underline">
-                Avatar entfernen
-            </button>
-        </div>
-        <div id="profile-upload-status" class="text-center text-sm text-gray-500 h-4"></div>
-    </div>
-</div>
+                                    <div class="flex flex-col items-center gap-4">
+                                        <h4 id="profile-username" class="text-lg font-semibold text-gray-700"></h4>
+                                        <img id="profile-image-preview"
+                                            src="https://placehold.co/128x128/e0e0e0/777?text=Avatar"
+                                            alt="Profilbild Vorschau"
+                                            class="w-32 h-32 rounded-full object-cover bg-gray-200">
 
-    <! --  Karte leaflet -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script> 
+                                        <input type="file" id="avatar-upload-input" class="hidden"
+                                            accept="image/png, image/jpeg">
+                                        <button id="avatar-upload-btn"
+                                            class="btn-primary w-full py-2 px-4 text-sm font-medium rounded-lg">
+                                            Bild auswählen...
+                                        </button>
 
-    <script src="js/main.js" defer></script>
+                                        <button id="avatar-delete-btn" class="text-sm text-red-600 hover:underline">
+                                            Avatar entfernen
+                                        </button>
+                                    </div>
+                                    <div id="profile-upload-status" class="text-center text-sm text-gray-500 h-4"></div>
+                                </div>
+                            </div>
+
+                            <! -- Karte leaflet -->
+                                <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+                                    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+                                    crossorigin=""></script>
+
+                                <script src="js/main.js" defer></script>
 </body>
 </html>
